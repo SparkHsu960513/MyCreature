@@ -2,6 +2,14 @@
 
 ---
 
+# 待辦與未來發想清單 (Todo List / Future Backlog)
+
+- [ ] **1. 生物打架**：爭奪帶電殘骸、吸食對手生物電、高壓電擊突觸短路攻擊、金屬肢體撕咬與防禦姿態。
+- [ ] **2. 不同生物**：多物種生態位分化（如：自營發電生產者、深槽水生電纜蠕蟲、巨型掠食捕蠅草、光學眼睛高階掠食獸等）。
+- [ ] **3. 其他特徵**：更多破格生態特徵（如先前暫存的「金屬共鳴與電磁歌唱／音頻指紋」、磁流體尖刺變形、機械蛻皮等）。
+
+---
+
 # 對話與專案歷程紀錄 (Memory / Work Log)
 
 > 此區案由 AI 於每次對話結束後自動維護，詳盡記錄討論脈絡、決策、各階段成果與下一步待辦。
@@ -116,3 +124,43 @@
   - 將既有的 `ZOORULES.md`、`rule.md`、`rules.md` 進行整併清理。
   - 正式定名為 **[RULES.md](file:///C:/Users/Chiang/Desktop/Object-Oriented_Programming/MyCreature/RULES.md)**，保留所有完整世界觀內容（Ⅰ 到 Ⅶ 章節與分區參數設定）。
   - 清理刪除舊的 `rule.md`、`rules.md` 與空白的 `ZOORULES.md`，使根目錄維持乾淨精簡。
+
+## 2026-09-30 — 讀取 GitHub Issue #1、更新指令工作流與全面專案同步 (update all)
+
+### 1. GitHub Issue #1 解析成果
+- **確認時程與目標**：確認全學期 7 站里程碑名稱與交付節奏。
+- **M1 報告站（10/1 明天）要求**：上台進行 3 分鐘世界分享，重點回答 4 大問題（世界樣貌、選擇原因、原創發想、AI 協作深化的發現）。
+
+### 2. 工作流規則更新 (AGENTS.md)
+- 正式將 `update` 與 `update all` 快捷指令納入 [AGENTS.md](file:///C:/Users/Chiang/Desktop/Object-Oriented_Programming/MyCreature/AGENTS.md)「回應規則」：
+  - 當創作者輸入 `update` 或 `update all` 時，主動檢查並同步更新 `RULES.md`、`CLAUDE.md`，必要時亦同步更新 `AGENTS.md`。
+
+### 3. 全面檔案同步 (All Files Synchronized)
+- **[RULES.md](file:///C:/Users/Chiang/Desktop/Object-Oriented_Programming/MyCreature/RULES.md)**：完整收錄 Ⅰ 至 Ⅶ 章世界觀、極端氣候、微黏稠淡螢光橘雨、厭氧電代謝、6 大板塊分區矩陣與生理參數。
+- **[m1-world/README.md](file:///C:/Users/Chiang/Desktop/Object-Oriented_Programming/MyCreature/m1-world/README.md)**：已更新為課程 M1 官方作業範本，並完整填妥 2026-09-30 AI 揭露欄（工具、日期、prompt 摘要與採用範圍）。
+- **[m1-world/notes.md](file:///C:/Users/Chiang/Desktop/Object-Oriented_Programming/MyCreature/m1-world/notes.md)**：已自動建立明天（10/1）上台 3 分鐘分享的完整講稿與四大問題回答大綱，可直接作為簡報或口頭導覽準備材料。
+
+## 2026-09-30 — 生命循環定案、破格生態特徵（幽靈廣播與引雷祭典）加入與全面同步 (update all)
+
+### 1. 創作者決策與生命循環機制定案
+1. **能量儲存**：黑色聚合物為生物有機超級電容（充飽泛淡紫電弧光，飢餓乾癟硬化如瀝青卡滯）。
+2. **生長機制**：同化廢金屬，分泌弱酸除鏽，包裹齒輪、彈簧與電路板擴充體積。
+3. **繁衍方式（低階真菌式）**：背部高聳囊柄在溫差對流強烈時噴發「黑色奈米晶片孢子（Black Spores）」，隨風散播至帶電廢墟萌發生長。
+4. **死亡雙重態回歸**：電能歸零後，正午高溫融化成焦黑瀝青滲入土層；夜間極凍硬化成脆橡膠崩解粉碎，金屬零件完整脫落重歸地表。
+
+### 2. 破格生態特徵與行為奇觀採納
+- **採納特徵 1：「幽靈廣播（晶片假性神經放電）」**：同化舊時代儲存晶片，在電壓激增時無意識短路放電，播放出 5,000 年前的殘缺人聲廣播或鋼琴旋律。
+- **採納特徵 3：「摩天樓引雷祭典（極限快充演化博弈）」**：暴雨前夕爬上倒塌摩天大樓頂端立起避雷針引百萬伏特天雷貫體，賭命實現瞬間超載充電。
+- **暫存備忘特徵 2：「金屬共鳴與電磁歌唱（音頻指紋）」**：先暫存於資料庫中，待後續特定物種與多族群分化時再行調用。
+
+### 3. 全面檔案同步 (All Files Synchronized)
+- **[RULES.md](file:///C:/Users/Chiang/Desktop/Object-Oriented_Programming/MyCreature/RULES.md)**：新增「**Ⅷ. 生物生命週期與繁衍循環**」與「**Ⅸ. 破格生態特徵與行為奇觀**」，正式收錄上述所有規則。
+- **[m1-world/notes.md](file:///C:/Users/Chiang/Desktop/Object-Oriented_Programming/MyCreature/m1-world/notes.md)**：同步更新講稿大綱，將「幽靈廣播」、「引雷祭典」與「奈米晶片孢子繁衍」列為上台原創分享的核心爆點。
+
+## 2026-09-30 — 建立專屬待辦清單 (Todo List)
+
+### 1. 創作者需求與規劃
+- 於 [CLAUDE.md](file:///C:/Users/Chiang/Desktop/Object-Oriented_Programming/MyCreature/CLAUDE.md) 顯著頂部建立專屬「待辦與未來發想清單 (Todo List / Future Backlog)」，供後續里程碑持續推進：
+  1. **生物打架**：個體爭奪帶電殘骸、吸食對手生物電、高壓電擊突觸短路、金屬義肢撕咬攻擊與硬化防禦。
+  2. **不同生物**：多物種生態位分化（自營發電生產者、深槽水生電纜蠕蟲、巨型掠食捕蠅草、光學眼睛高階掠食獸等）。
+  3. **其他特徵**：更多破格生態特徵（如暫存之「金屬共鳴與電磁歌唱／音頻指紋」、磁流體尖刺變形、機械蛻皮等）。
