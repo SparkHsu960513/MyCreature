@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>M2 - 八爪博士聚合物機械生物 (Doc Ock Polymer Slime)</title>
+    <!-- 引入 p5.js 最新穩定版 -->
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.9.4/lib/p5.min.js"></script>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        background-color: #0b0b0e;
+        color: #f0f0f0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
+        overflow: hidden;
+        user-select: none;
+      }
+      main {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      /* 左上角 HUD 資訊抬頭顯示（放大字體） */
+      #hud {
+        position: absolute;
+        top: 24px;
+        left: 24px;
+        background: rgba(16, 17, 22, 0.92);
+        padding: 18px 26px;
+        border-radius: 12px;
+        border-left: 5px solid #ff7700;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 6px 28px rgba(0,0,0,0.65);
+        font-size: 16px;
+        line-height: 1.7;
+        pointer-events: none;
+        z-index: 10;
+        min-width: 340px;
+      }
+      #hud h1 {
+        margin: 0 0 10px 0;
+        font-size: 22px;
+        color: #ffaa44;
+        letter-spacing: 1px;
+      }
+      #hud p {
+        margin: 4px 0;
+        color: #ccc;
+      }
+      #hud .status-tag {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 6px;
+        background: #252834;
+        color: #64d2ff;
+        font-weight: bold;
+        font-size: 15px;
+      }
+      #hud .exp-bar-container {
+        width: 100%;
+        height: 9px;
+        background: #22252e;
+        border-radius: 5px;
+        margin-top: 6px;
+        overflow: hidden;
+        border: 1px solid #3d4252;
+      }
+      #hud .exp-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ff8822, #ffcc00);
+        width: 0%;
+        transition: width 0.3s ease;
+      }
+
+      /* 側邊參數控制面板（放大字體） */
+      #control-panel {
+        position: absolute;
+        top: 24px;
+        right: 24px;
+        width: 320px;
+        background: rgba(16, 17, 22, 0.92);
+        border: 1px solid rgba(255, 120, 30, 0.35);
+        border-radius: 14px;
+        padding: 22px 24px;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 8px 36px rgba(0, 0, 0, 0.7);
+        z-index: 20;
+        transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
+      }
+      #control-panel.collapsed {
+        transform: translateX(370px);
+      }
+      #panel-toggle {
+        position: absolute;
+        left: -46px;
+        top: 18px;
+        width: 44px;
+        height: 44px;
+        background: #1c1e26;
+        border: 1px solid rgba(255, 120, 30, 0.45);
+        border-radius: 10px 0 0 10px;
+        color: #ffaa44;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: -4px 0 12px rgba(0,0,0,0.4);
+      }
+      #panel-toggle:hover {
+        background: #282c38;
+      }
+      #control-panel h2 {
+        margin: 0 0 16px 0;
+        font-size: 19px;
+        color: #ffaa44;
+        border-bottom: 1px solid rgba(255, 120, 30, 0.25);
+        padding-bottom: 10px;
+        letter-spacing: 1px;
+      }
+      .control-group {
+        margin-bottom: 16px;
+      }
+      .control-group label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 15px;
+        color: #bbb;
+        margin-bottom: 6px;
+      }
+      .control-group label span.val {
+        color: #64d2ff;
+        font-family: monospace;
+        font-weight: bold;
+      }
+      .control-group input[type="range"] {
+        width: 100%;
+        accent-color: #ff8822;
+        background: #2a2e3a;
+        height: 6px;
+        border-radius: 3px;
+        outline: none;
+      }
+      .control-group select {
+        width: 100%;
+        background: #20242e;
+        color: #eee;
+        border: 1px solid #434858;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 14px;
+        outline: none;
+      }
+      .control-group select:focus {
+        border-color: #ff8822;
+      }
+      .hint {
+        font-size: 13.5px;
+        color: #aaa;
+        margin-top: 14px;
+        line-height: 1.6;
+        background: rgba(30, 33, 42, 0.6);
+        padding: 10px 12px;
+        border-radius: 8px;
+        border-left: 3px solid #64d2ff;
+      }
+      .btn {
+        background: #ff8822;
+        color: #111;
+        font-weight: bold;
+        border: none;
+        padding: 9px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.2s;
+      }
+      .btn:hover {
+        background: #ffa044;
+      }
+      .btn-secondary {
+        background: #252834;
+        color: #ddd;
+        border: 1px solid #454a5c;
+      }
+      .btn-secondary:hover {
+        background: #323746;
+      }
+    </style>
+  </head>
+  <body oncontextmenu="return false;">
+    <!-- 左上角 HUD 狀態顯示 -->
+    <div id="hud">
+      <h1>ZONE 3 // 八爪機械黏菌共生體</h1>
+      <p>主控母體：<span id="player-tier" class="status-tag">Tier 3 巨獸 (6 爪)</span></p>
+      <p>吞食進度：<span id="player-exp" style="color: #ffcc00; font-weight: bold;">0 / 3 隻</span></p>
+      <div class="exp-bar-container">
+        <div id="exp-bar-fill" class="exp-bar-fill"></div>
+      </div>
+      <p style="margin-top: 8px;">族群總數：<span id="creature-count" style="color: #64d2ff; font-weight: bold;">1</span> 隻個體</p>
+      <p>環境天候：<span id="hud-weather" style="color: #ffaa44;">乾燥常態</span></p>
+      <p style="font-size: 14px; color: #888; margin-top: 6px;">
+        🕹️ <b>滑鼠左鍵</b>：指引母體跨步爬行 ｜ <b>滑鼠右鍵</b>：投放小生物食物
+      </p>
+    </div>
+
+    <!-- 右側參數調控 Bar -->
+    <div id="control-panel">
+      <div id="panel-toggle" title="收合/展開面板">⚙️</div>
+      <h2>生態實驗艙控制台</h2>
+
+      <!-- 天氣選擇 -->
+      <div class="control-group">
+        <label for="weather-select">天候環境 (Weather):</label>
+        <select id="weather-select">
+          <option value="normal" selected>乾燥廢土 (Normal Dry)</option>
+          <option value="amber-rain">午後微黏稠螢光橘雨 (Amber Rain)</option>
+          <option value="freezing">夜間極凍死電期 (Frozen Dark)</option>
+        </select>
+      </div>
+
+      <!-- 環境亮度 -->
+      <div class="control-group">
+        <label for="bg-brightness">環境明暗 (Brightness): <span id="val-brightness" class="val">18</span></label>
+        <input type="range" id="bg-brightness" min="6" max="50" value="18" />
+      </div>
+
+      <!-- 黏液黏稠度 / 蠕動形變 -->
+      <div class="control-group">
+        <label for="slime-viscosity">黏液黏稠流動度: <span id="val-viscosity" class="val">1.4</span></label>
+        <input type="range" id="slime-viscosity" min="0.5" max="3.0" step="0.1" value="1.4" />
+      </div>
+
+      <!-- 齒輪轉速 -->
+      <div class="control-group">
+        <label for="gear-speed">同化齒輪活性: <span id="val-gear-speed" class="val">1.0</span></label>
+        <input type="range" id="gear-speed" min="0" max="3.0" step="0.2" value="1.0" />
+      </div>
+
+      <!-- 全域閃電頻率 -->
+      <div class="control-group">
+        <label for="lightning-frequency">全域閃電頻率: <span id="val-lightning" class="val">低頻</span></label>
+        <input type="range" id="lightning-frequency" min="0" max="3" step="1" value="1" />
+      </div>
+
+      <!-- 雨勢強度 -->
+      <div class="control-group">
+        <label for="rain-intensity">雨勢強度 (Rain): <span id="val-rain" class="val">大雨</span></label>
+        <input type="range" id="rain-intensity" min="0" max="4" step="1" value="2" />
+      </div>
+
+      <!-- 背景電力竄動頻率 -->
+      <div class="control-group">
+        <label for="electric-frequency">背景殘存電力竄動: <span id="val-electric" class="val">低頻</span></label>
+        <input type="range" id="electric-frequency" min="0" max="3" step="1" value="1" />
+      </div>
+
+      <div class="hint">
+        🕷️ <b>八爪博士步態</b>：生物利用錐形外骨骼爪交替邁步支撐向前。<br>
+        🍖 <b>右鍵投餵</b>：在任意處點右鍵生成低等幼體，母體感知後會踏步追逐並吸食，吸飽自動升級！
+      </div>
+
+      <div style="margin-top: 16px; display: flex; gap: 10px;">
+        <button id="btn-spawn-random" class="btn" style="flex: 1;">散佈野生食物</button>
+        <button id="btn-reset" class="btn btn-secondary">重置母體</button>
+      </div>
+    </div>
+
+    <main></main>
+    <script src="sketch.js"></script>
+
+    <script>
+      // 側邊欄收合按鈕互動
+      const toggleBtn = document.getElementById('panel-toggle');
+      const panel = document.getElementById('control-panel');
+      toggleBtn.addEventListener('click', () => {
+        panel.classList.toggle('collapsed');
+      });
+    </script>
+  </body>
+</html>

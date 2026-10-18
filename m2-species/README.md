@@ -1,137 +1,84 @@
-# 我的作品集 — 物件導向程式設計
+# M2 物種設計：八爪機械黏菌共生體 (Doc Ock Polymer Slime)
 
-> 這是你整學期的作品集 repo：16 週的作品、你的 AI 工作流、你的成長紀錄，全部在這裡累積。
-> 課程頁：<https://course.interaction.tw/oop/>
+> 這一站在做什麼、怎麼做、卡住看哪裡，都在課程頁：<https://course.interaction.tw/oop/#milestones>  
+> 世界觀與生態背景詳見：[RULES.md](../RULES.md)
 
-## 🚀 三分鐘開工（學校電腦也一樣）
+---
 
-學校公用電腦每次都會被還原？沒關係——**你的環境不在那台電腦上**。
+## 物種介紹與生態定位
 
-1. 開瀏覽器 → 登入 [github.com](https://github.com)
-2. 進到你的這個 repo → 綠色 **Code** 按鈕 → **Codespaces** → **Create codespace on main**
-   （第二次以後：同一個地方會看到你之前的 codespace，點開即續，幾秒就好）
-3. 等瀏覽器裡出現 **VS Code 版面**——這就是你的工作環境，任何電腦打開都一模一樣
-4. 下方終端機輸入 `claude` → 登入你的 Claude 帳號（登入一次即可，之後都記得你）——**照下面的「登入 SOP」做，不要等它自動開瀏覽器**
-5. 開始工作。做完記得：**Source Control 面板 → commit → push**（推上去的才算數）
+本物種源自後人類世界 **Zone 3: 摩天巨構海槽區 (Megastructure Canals)** 與 **Zone 4: 軌道墜落重災區 (Orbital Impact Basin)**。
 
-## 📁 這個 repo 的結構
+* **本體構造（奇異博士披肩流動 ＋ 水感不規則史萊姆）**：
+  - 由曜黑墨綠深質生質聚合物構成，具備極強的流體水感（Water-like Fluidity）。
+  - 高速移動時，身體後方如**「奇異博士的魔浮斗篷（Cloak of Levitation）」**般產生連續起伏的行進波（Travelling Wave），兩側翻飛展翅，前端尖銳破浪，停步時柔和回彈。
+* **體表電絲與螢光腺體 (Bioluminescent Neon Glands & Body Filaments)**：
+  - 體表隨機有細微的**螢光青藍色（Neon Cyan #00ffcc）**與**螢光橘色（Neon Amber #ff7700）**電絲在黏液與齒輪間蜿蜒傳導游走。
+  - 體內嵌有 3 顆生物電囊腺體，隨呼吸發出半透明螢光呼吸光暈。
+* **八爪博士程序步態（前爪破格長跨距強拉）**：
+  - 移動時，朝向前進方向的前爪獲得超長跨距加成（可達半徑 3.3 倍！），如鐵錨般遠遠扎入前方地面，隨後整隻軀體被前爪強力拉扯推進！
+  - 待機時停在原地，爪尖在四周地面輪流輕巧摸索踩踏；只有玩家滑鼠左鍵指定目標時，母體才跨動大步前往！
+  - 捕食時，長爪瞬間彈射扣住獵物，強行拖回腹部消化同化。
+* **機械共生（強烈錯位外露齒輪）**：
+  - 齒輪不對稱錯位偏心，部分齒輪直接突出並懸掛於黏液軀體外圍（達半徑 1.15 倍！），以黑色黏液牽絲蹼拉伸固定，軸心不定時迸發螢光電弧。
+* **後人類廢土俯視動態天候與光影全景**：
+  - **俯視天候視角**：
+    - **午後微黏稠螢光橘雨**：短促雨痕自上空斜向俯衝地面，撞擊時在廢土地面炸開擴散淡出的「螢光橘黏液水花漣漪 (Splashes & Ripples)」！
+    - **夜間極凍死電期**：自上空緩慢旋轉飄落的「冷螢光青藍冰晶雪花 (Neon Frost Cyan)」，電網帶白霜且電流通行微弱。
+  - **全域動態光影**：
+    - 地面緩慢平移游弋的「巨型雲朵陰影 (Drifting Cloud Shadows)」。
+    - 廢墟間灑落的「白色冷冽斜射月光光斑 (Pale Moonlight Beams)」。
+    - 隨機瞬間照亮全景畫面的「全域白色閃電強光 (Full-screen Lightning Flash)」！
 
-```
-CLAUDE.md        ← 你的 AI 工作流（W3 起自己維護，這是課程核心作業之一）
-.devcontainer/   ← 環境定義（Claude Code 已預裝）——你不用動它
-```
+---
 
-其餘是空白的——這是你的空間，怎麼組織由你（和你的工作流）決定。
+## 程式與動態機制設計 (p5.js 物件導向架構)
 
-## ✍️ 交作業（四件套）
+本專案於 `sketch.js` 採用物件導向（OOP）架構模組化實作：
 
-每次作業自己開一個資料夾（例如 `m1-world/`（每個里程碑一個資料夾）），裡面要有：
+1. **`SlimeCreature` (奇異博士披肩流波、螢光器官與超渡進食)**：
+   - 在 `drawDeepSlimeBody()` 中引入行進波函數：`cloakWave = sin(a * 4 - frameCount * 0.18 + spd * 2.5) * (spd * 12.0) * max(0, -cosDiff)`，模擬斗篷下擺在後方的起伏翻捲。
+   - `drawNeonGlands()`：使用 ADD 混色多層光暈，繪製體內呼吸閃爍的螢光青藍與螢光橘腺體。
+   - `drawBodyFilaments()`：動態生成在體表黏液游走的折線電絲。
+   - `feedingTarget`：以光罩吸引獵物並超渡式消滅，附黑洞吸入動畫與殘留物。
+2. **`DocOckTentacle` (錨定拉動與多爪分工)**：
+   - 計算前向點積（`forwardDot`），前爪跨距加成可達約 `3.15 * r`，拉到極限後錨定，再平滑收回。
+   - 多爪輪流/同步参与推进；非領爪支援跟隨，避免各自亂抓。
+3. **`drawAtmosphericWasteland()` (雲影、大型光斑、掃描光束與全景閃電)**：
+   - 多個巨大不規則陽光斑向右緩慢漂移、消失後再進入；
+   - 燈塔式矩形光束緩慢掃過整個畫面；
+   - `lightningFlash` 由 UI 頻率滑桿控制，支援串閃與不同亮度/時長。
+4. **`handleWeatherEffects()` (俯視角度螢光雨雪)**：
+   - 俯視 35 度斜向雨痕 ＋ 地面圓形水花漣漪池；
+   - 俯視冷螢光青藍色旋轉冰晶粒子。
+5. **殘留物系統**：`preyResidues` 在進食位置生成，數秒後淡出。
 
-1. **程式碼**：可執行（p5.js 網頁作品＝`index.html`＋`sketch.js`，對著 `index.html` 按 Live Preview 看結果）
-2. **截圖或影片**：放進同一個資料夾
-3. **反思**：`README.md` 裡寫 100–200 字（自己寫，AI 不代寫）
-4. **AI 揭露欄**：`README.md` 裡照下表填（沒用到就寫「未使用」）
+---
 
-```markdown
+## 操作與互動說明
+
+- **即時預覽**：對著 `index.html` 右鍵點擊 **Show Preview**。
+- **🕹️ 滑鼠左鍵（指引跨步）**：點擊畫布任意處，單次光標跳動一次即淡出；母體前爪長跨距深抓前方地面，身體如奇異博士披肩般翻捲拉扯衝向目標；到達後自動停在原地摸索待機。
+- **🍖 滑鼠右鍵（投放獵物）**：點擊右鍵投放食物幼體。看母體大步上前抓捕吞噬！
+- **⚙️ 右側控制台**：
+  - 切換「**午後微黏稠螢光橘雨**」看地面炸開的螢光橘水花漣漪！
+  - 切換「**夜間極凍死電期**」感受空中飄落的冷螢光青藍雪花與冰凍死電氛圍！
+  - 調整「**全域閃電頻率**」滑桿（0–3）改變全身閃電節奏！
+  - 注意背景中**巨大漂移光斑**、**掃描-style矩形光束**、**雲影遮蔽**與**隨機閃耀的全域閃電**！
+
+---
+
+## 反思
+
+（一百到兩百字，自己寫，AI 不代寫：你這一站想了什麼、卡在哪、哪些是你自己的想法。）
+
+---
+
 ## AI 揭露欄
+
 | 項目 | 內容 |
 |------|------|
-| 工具 | （例：Claude Pro／未使用） |
-| 日期 | |
-| prompt 摘要 | |
-| 採用範圍 | （哪些碼／想法來自 AI，自己改了什麼） |
-```
-
-Deadline 前 push＝繳交。commit 的時間戳就是紀錄，每一步嘗試都是過程的證據。
-
-## 🎞️ 簡報上傳 SOP（M1／M2／M3／M6 報告站）
-
-報告站每個人都要上台簡報，簡報檔跟四件套一起放進**該站資料夾**。照這四步，老師一定看得到：
-
-1. **匯出成 PDF**：PowerPoint、Keynote、Google Slides、Canva 都有「匯出／下載 PDF」——**一律傳 PDF**，因為 GitHub 網頁能直接翻頁預覽 PDF，老師點開就能看；pptx 傳上去只能下載、不能預覽，別用
-2. **取名放對位置**：檔名照「站名-簡報.pdf」，放進該站資料夾，例如：
-
-   ```
-   m1-world/m1-簡報.pdf
-   m2-species/m2-簡報.pdf
-   m3-creature/m3-簡報.pdf
-   m6-zoo/m6-簡報.pdf
-   ```
-
-3. **傳上去（兩種方法挑一種）**：
-   - **Codespace**：把 PDF 直接拖進左邊檔案總管的該站資料夾 → Source Control 寫一句訊息 → **Commit** → **Sync Changes**
-   - **repo 網頁**：打開你的 repo → 點進該站資料夾 → **Add file → Upload files** → 拖檔案進去 → **Commit changes**（單檔上限 25MB，超過幾乎都是簡報裡塞了影片——把影片抽出來另外放進資料夾，簡報裡留截圖就好）
-4. **驗收**：push 完打開 repo 網頁，點那個 PDF——**能翻頁預覽＝交付成功**，老師看到的就是這個畫面
-
-用 Google Slides 報告的人：PDF 照傳一份，想附雲端連結的話記得開「知道連結的使用者皆可檢視」再把連結寫進該站 `README.md`——連結會失效、PDF 不會，**PDF 才是交付本體**。
-
-## 🔑 Claude 登入 SOP（Codespace 裡一定要走手動流程）
-
-Codespace 是雲端容器，登入的「自動跳轉」到不了它——**要手動貼授權碼**：
-
-1. 終端機打 `claude` → 選 **Claude account with subscription**
-2. 畫面會印出一條**登入網址**——先把終端機面板拉大，然後在網址上**連點三下（快速點三次）**：會一次全選整條網址（包含換行的部分）→ 複製
-   （按 `c` 理論上會自動複製，但瀏覽器常擋剪貼簿權限——實測直接三連點反白最可靠）
-3. 開新分頁貼上網址 → 登入 Claude 帳號 → 授權
-4. 頁面顯示一組**授權碼** → 複製 → 回終端機貼在 `Paste code here…` → Enter
-
-排錯：
-
-- 出現「Invalid OAuth Request — Unknown scope: …」？→ 網址在複製時**掉了字元**（用拖曳框選跨行網址的經典後果）。回到第 2 步用**三連點**重新全選複製；或直接在瀏覽器網址列把拼錯的 scope 改對（例：`fil_upload`→`file_upload`）重新載入
-- 授權完跳到「無法連上 localhost」錯誤頁？→ 看**網址列**，把 `code=` 後面那串複製回終端機貼上即可
-- 貼上沒反應？→ 終端機用**右鍵→貼上**或 `Ctrl+Shift+V`；再不行檢查 `claude --version` 是否 ≥ 2.1.108，舊了就 `npm install -g @anthropic-ai/claude-code@latest`
-
-## 🎬 第一次試跑（照抄就會動）
-
-環境開好後，建兩個檔案試跑看看（左邊檔案總管右鍵 → New Folder 建 `test/`，裡面 New File）：
-
-**`test/index.html`**
-
-```html
-<!doctype html>
-<html lang="zh-TW">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>我的第一個動畫</title>
-    <script src="https://cdn.jsdelivr.net/npm/p5@2/lib/p5.min.js"></script>
-    <style>html,body{margin:0;height:100%}main{display:flex;justify-content:center;align-items:center;height:100%}</style>
-  </head>
-  <body>
-    <main></main>
-    <script src="sketch.js"></script>
-  </body>
-</html>
-```
-
-**`test/sketch.js`**
-
-```js
-function setup() {
-  createCanvas(600, 600)
-}
-
-function draw() {
-  background(253, 252, 249)
-  circle(width / 2, height / 2, 100 + 20 * sin(frameCount * 0.05))
-}
-```
-
-### 看結果的兩種方式
-
-1. **編輯器內即時預覽（日常用）**：對 `index.html` **右鍵 →「Show Preview」**——碼在左、動畫在右；因為有自動儲存，改一行、預覽秒刷新
-2. **完整瀏覽器分頁（發表用）**：終端機跑 `npx live-server test` → 跳出通知點「**Open in Browser**」；在 Ports 面板把該埠設 Public，網址丟給同學就能當場看你的作品
-
-會動了（一顆會呼吸的圓）就代表環境沒問題——可以把 `test/` 刪掉或改名成你的第一份作業資料夾。
-
-## ⚠️ Codespaces 三件事
-
-- **用 2-core 機型就好**（預設就是）：學生帳號每月 180 core-hours＝90 小時，夠用；開大機型會加倍燒
-- 閒置 30 分鐘會自動休眠（重開即續）；**閒置 30 天 codespace 會被刪**——所以工作一定要 push，repo 裡的東西永遠不會消失
-- 第一次用若被要求設定 spending budget，設 $0 即可（課堂上會帶大家走一遍）
-
-## 🤖 你的 AI 工作流
-
-`CLAUDE.md` 是你的——課堂五條公約寫在裡面（不可刪），其餘的部分隨學期自己長出來：你的偏好、你的流程、你踩過的坑。學期末它就是你帶得走的工作方法。
-
-p5.js 也可以用[網頁編輯器](https://editor.p5js.org)寫（一樣存雲端），寫完把碼貼回當週資料夾即可。
+| 工具 | Antigravity (Gemini 3.8 Flash)；CatJam (OpenCode) |
+| 日期 | 2026-10-15 |
+| prompt 摘要 | 重大視覺與動態升級：加入奇異博士披肩般行進波浪流動與水感黏液；修正為俯視角度的短促微傾螢光橘雨痕（落地炸開漣漪）與冷螢光青藍旋轉雪花；設計背景動態光影（雲朵陰影移動、白色月光光束、全景閃電瞬間強光）；前爪實作超長跨距釘地強拉推進；生物體表加入游走細電絲與呼吸螢光腺體。後續由 CatJam/OpenCode 調整：錨定拉動步態、黏液拖動感、多爪分工、超渡式吸引進食（光罩/殘留物/黑洞吸入）、粗獵追食節奏、巨大不規則光斑與掃描式矩形光束、全域閃電頻率滑桿、待機/覓食節奏。 |
+| 採用範圍 | 世界觀、物種設計、美學與生态行為由創作者 Spark 發想；AI 協助 OOP 架構、公式、粒子系統、光影/天候演算法、UI 与步態協調、README/CLAUDE 紀錄整理；反思與最終說明仍由 Spark 自行決定。 |
