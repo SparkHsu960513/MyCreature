@@ -85,6 +85,12 @@ export class WorldSimulation {
     /**
      * @param {number} val
      */
+    set_electric_freq(val) {
+        wasm.worldsimulation_set_electric_freq(this.__wbg_ptr, val);
+    }
+    /**
+     * @param {number} val
+     */
     set_gear_speed(val) {
         wasm.worldsimulation_set_gear_speed(this.__wbg_ptr, val);
     }

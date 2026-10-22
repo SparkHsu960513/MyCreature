@@ -13,6 +13,7 @@ export class WorldSimulation {
     reset_alpha(): void;
     resize(width: number, height: number): void;
     set_brightness(val: number): void;
+    set_electric_freq(val: number): void;
     set_gear_speed(val: number): void;
     set_lightning_freq(val: number): void;
     set_rain_intensity(val: number): void;
@@ -38,6 +39,7 @@ export interface InitOutput {
     readonly worldsimulation_reset_alpha: (a: number) => void;
     readonly worldsimulation_resize: (a: number, b: number, c: number) => void;
     readonly worldsimulation_set_brightness: (a: number, b: number) => void;
+    readonly worldsimulation_set_electric_freq: (a: number, b: number) => void;
     readonly worldsimulation_set_gear_speed: (a: number, b: number) => void;
     readonly worldsimulation_set_lightning_freq: (a: number, b: number) => void;
     readonly worldsimulation_set_rain_intensity: (a: number, b: number) => void;

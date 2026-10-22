@@ -537,16 +537,16 @@ impl Environment {
                     let tail_x = drop.x;
                     let tail_y = drop.y - drop.length;
 
-                    // 外層強烈螢光暈光
-                    ctx.set_stroke_style_str("rgba(255, 80, 0, 0.65)");
+                    // 外層強烈螢光暈光（已調低，避免過於搶眼）
+                    ctx.set_stroke_style_str("rgba(255, 80, 0, 0.38)");
                     ctx.set_line_width(4.5);
                     ctx.begin_path();
                     ctx.move_to(tail_x, tail_y);
                     ctx.line_to(head_x, head_y);
                     ctx.stroke();
 
-                    // 內層飽和亮橘流光
-                    ctx.set_stroke_style_str("rgba(255, 170, 0, 0.95)");
+                    // 內層飽和亮橘流光（已調低）
+                    ctx.set_stroke_style_str("rgba(255, 170, 0, 0.6)");
                     ctx.set_line_width(2.4);
                     ctx.begin_path();
                     ctx.move_to(tail_x, tail_y);
@@ -555,7 +555,7 @@ impl Environment {
 
                     // 雨滴撞擊端高亮螢光光核 (White-Hot Fluorescent Tip)
                     ctx.begin_path();
-                    ctx.arc(head_x, head_y, 2.2, 0.0, TWO_PI)?;
+                    ctx.arc(head_x, head_y, 1.8, 0.0, TWO_PI)?;
                     ctx.set_fill_style_str("#fffae0");
                     ctx.fill();
                 }

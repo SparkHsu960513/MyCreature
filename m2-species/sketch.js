@@ -158,6 +158,16 @@ function initControls() {
     });
   }
 
+  // 背景電力竄動
+  if (sliderElectric) {
+    const electricTexts = ['無', '低頻', '中頻', '高頻突觸'];
+    sliderElectric.addEventListener('input', () => {
+      const val = parseInt(sliderElectric.value, 10);
+      lblElectric.innerText = electricTexts[val] || '低頻';
+      if (sim) sim.set_electric_freq(val);
+    });
+  }
+
   // 散佈野生幼體
   const btnSpawn = document.getElementById('btn-spawn-random');
   if (btnSpawn) {
@@ -205,6 +215,12 @@ function syncSlidersToSim() {
     const rainTexts = ['無雨', '細微小雨', '大雨', '暴雨傾盆', '末日橘雨'];
     lblRain.innerText = rainTexts[val] || '大雨';
     sim.set_rain_intensity(val);
+  }
+  if (sliderElectric) {
+    const val = parseInt(sliderElectric.value, 10);
+    const electricTexts = ['無', '低頻', '中頻', '高頻突觸'];
+    lblElectric.innerText = electricTexts[val] || '低頻';
+    sim.set_electric_freq(val);
   }
 }
 

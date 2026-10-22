@@ -127,7 +127,8 @@ impl SlimeTentacle {
 
     pub fn render(&self, ctx: &CanvasRenderingContext2d, root_pos: Vec2, body_radius: f64) -> Result<(), JsValue> {
         let root_dir = Vec2::from_angle(self.mount_angle);
-        let root = root_pos + root_dir * (body_radius * 0.7);
+        // 觸手根部併入身體本體，讓身體與觸手呈現「一團東西」的黏膩感
+        let root = root_pos + root_dir * (body_radius * 0.5);
         let tip = self.foot_pos;
 
         let mid = (root + tip) * 0.5;
@@ -147,8 +148,8 @@ impl SlimeTentacle {
             nodes.push(spine_pt + perp);
         }
 
-        // 大幅加粗：基底渾厚強烈 (body_radius * 0.65)，尖端收細至 5.0px 圓頭感知端
-        let root_thick = body_radius * 0.65;
+        // 大幅加粗：基底渾厚強烈 (body_radius * 0.8)，且根部併入身體內部，讓身體與觸手融合為一團
+        let root_thick = body_radius * 0.8;
         let tip_thick = 5.0;
 
         let mut left_contour = Vec::with_capacity(node_count);

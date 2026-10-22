@@ -11,6 +11,7 @@ export const worldsimulation_render: (a: number, b: any) => [number, number];
 export const worldsimulation_reset_alpha: (a: number) => void;
 export const worldsimulation_resize: (a: number, b: number, c: number) => void;
 export const worldsimulation_set_brightness: (a: number, b: number) => void;
+export const worldsimulation_set_electric_freq: (a: number, b: number) => void;
 export const worldsimulation_set_gear_speed: (a: number, b: number) => void;
 export const worldsimulation_set_lightning_freq: (a: number, b: number) => void;
 export const worldsimulation_set_rain_intensity: (a: number, b: number) => void;

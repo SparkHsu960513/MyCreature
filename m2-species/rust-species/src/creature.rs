@@ -36,6 +36,13 @@ pub struct NeonGland {
     pub is_cyan: bool,
 }
 
+#[derive(Clone, Copy, Debug)]
+pub struct PreyResidue {
+    pub pos: Vec2,
+    pub radius: f64,
+    pub life: f64,
+}
+
 #[derive(Clone, Debug)]
 pub struct SlimeCreature {
     pub pos: Vec2,
@@ -56,6 +63,7 @@ pub struct SlimeCreature {
     pub is_alpha: bool,
     pub is_captured: bool,
     pub blackhole_anim: f64,
+    pub hunt_phase: f64,
 }
 
 impl SlimeCreature {
@@ -121,6 +129,7 @@ impl SlimeCreature {
             is_alpha,
             is_captured: false,
             blackhole_anim: 0.0,
+            hunt_phase: 0.0,
         }
     }
 
@@ -246,6 +255,9 @@ impl SlimeCreature {
                 self.target = target_pos;
                 self.state = CreatureState::Hunting;
             }
+            if self.state == CreatureState::Hunting {
+                self.hunt_phase += 0.09;
+            }
         }
 
         // 推進移動
@@ -369,6 +381,30 @@ impl SlimeCreature {
         // 3. 獵捕光罩
         if self.is_alpha && self.state == CreatureState::Hunting {
             let glow_r = self.base_radius * 2.6;
+
+            // 【設計 1：獵捕黑洞吸積盤】旋轉光環，強化「吸食」的史詩感
+            for i in 0..3 {
+                let ring_r = glow_r * (1.35 + 0.3 * i as f64);
+                let rot = self.hunt_phase + i as f64 * 2.1;
+                ctx.begin_path();
+                ctx.ellipse(self.pos.x, self.pos.y, ring_r, ring_r * 0.5, rot, 0.0, TWO_PI)?;
+                let (c1, c2, c3) = if i == 0 { (255u8, 140u8, 40u8) } else if i == 1 { (255u8, 190u8, 90u8) } else { (0u8, 200u8, 255u8) };
+                ctx.set_stroke_style_str(&format!("rgba({}, {}, {}, 0.5)", c1, c2, c3));
+                ctx.set_line_width(2.0);
+                ctx.stroke();
+            }
+
+            // 【設計 3：吸食渦】旋轉渦流光暈，強化「被吸」的拉力感
+            for i in 0..2 {
+                let vr = glow_r * (1.6 + 0.5 * i as f64);
+                let rot = self.hunt_phase * 1.6 + i as f64 * 4.7;
+                ctx.begin_path();
+                ctx.ellipse(self.pos.x, self.pos.y, vr, vr * 0.55, rot, 0.0, TWO_PI)?;
+                ctx.set_stroke_style_str("rgba(255, 130, 40, 0.32)");
+                ctx.set_line_width(1.5);
+                ctx.stroke();
+            }
+
             ctx.begin_path();
             ctx.arc(self.pos.x, self.pos.y, glow_r, 0.0, TWO_PI)?;
             ctx.set_stroke_style_str("rgba(255, 120, 20, 0.38)");

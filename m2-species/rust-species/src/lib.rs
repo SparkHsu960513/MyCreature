@@ -5,7 +5,7 @@ mod math;
 mod tentacle;
 mod wire;
 
-use creature::SlimeCreature;
+use creature::{PreyResidue, SlimeCreature};
 use environment::Environment;
 use math::FastRng;
 use wasm_bindgen::prelude::*;
@@ -21,6 +21,7 @@ pub struct WorldSimulation {
     gear_speed: f64,
     viscosity: f64,
     brightness: f64,
+    pub residues: Vec<PreyResidue>,
 }
 
 #[wasm_bindgen]
@@ -49,6 +50,7 @@ impl WorldSimulation {
             gear_speed: 1.0,
             viscosity: 1.4,
             brightness: 18.0,
+            residues: Vec::new(),
         }
     }
 
@@ -133,6 +135,23 @@ impl WorldSimulation {
             c.update(&mut self.rng, self.gear_speed, self.viscosity, empty_prey);
         }
 
+        // 【設計 4】獵物被吸食後留下殘骸，慢慢消散
+        for c in self.creatures.iter() {
+            if c.is_captured && c.blackhole_anim >= 0.98 {
+                self.residues.push(PreyResidue {
+                    pos: c.pos,
+                    radius: c.base_radius * 0.55,
+                    life: 70.0,
+                });
+            }
+        }
+
+        // 更新殘骸消散
+        for r in self.residues.iter_mut() {
+            r.life -= 1.0;
+        }
+        self.residues.retain(|r| r.life > 0.0);
+
         // 移除被吞食並完成黑洞消滅的幼體
         self.creatures.retain(|c| !c.is_captured || c.blackhole_anim < 0.98);
     }
@@ -140,6 +159,15 @@ impl WorldSimulation {
     pub fn render(&self, ctx: &CanvasRenderingContext2d) -> Result<(), JsValue> {
         // 1. 廢土電網背景與飄移雲影 (時暗時亮)
         self.env.render_background(ctx, self.brightness)?;
+
+        // 5. 獵物殘骸（被吸食後留下，慢慢消散）- 【設計 4】
+        for r in &self.residues {
+            let life_a = (r.life / 70.0).clamp(0.0, 1.0);
+            ctx.begin_path();
+            ctx.arc(r.pos.x, r.pos.y, r.radius, 0.0, std::f64::consts::PI * 2.0)?;
+            ctx.set_fill_style_str(&format!("rgba(22, 28, 38, {})", life_a * 0.85));
+            ctx.fill();
+        }
 
         // 2. 幼體個體繪製
         for c in self.creatures.iter().skip(1) {
