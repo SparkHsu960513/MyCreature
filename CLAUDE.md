@@ -495,3 +495,50 @@
 - 體表電絲機率/上限降低。
 - 殘留物數量減半。
 - 巨大光斑數量 6 → 4。
+
+---
+
+## 2026-10-22 — M2 備份更名與全面重構為 Rust (WebAssembly) 高速架構
+
+### 使用者需求
+1. 先查看上次更新紀錄。
+2. 將原本的 species 檔案備份，並依照「backup-日期」命名格式。
+3. 無論如何將原本的 species 改用 Rust (rush) 編寫，解決運算與渲染卡頓問題，並維持能在網頁 Live Preview 執行。
+
+### 執行措施與決策
+1. **備份更名與封存**：
+   - 建立今日完整備份資料夾 `m2-species-backup-20261022/`，包含先前最新調校完成之 `index.html`、`sketch.js` 與 `README.md`。
+   - 保留原有的 `m2-species-backup-20261015/` 歷史紀錄，確保版本演化軌跡完整。
+2. **環境配置 (Rust + Wasm)**：
+   - 於 WSL 環境部署 Rust 1.99.1、`wasm32-unknown-unknown` 目標架構以及 `wasm-pack 0.13.1`。
+3. **Rust 物件導向模擬核心 (`m2-species/rust-species/`)**：
+   - `math.rs`：向量運算（`Vec2`）、高效率 PRNG（`FastRng`）、平滑波形噪波函數。
+   - `gear.rs`：`Gear` 結構體，掌管同化齒輪之旋轉、齒槽輪廓與金屬外觀繪製。
+   - `wire.rs`：`BioWire` 與 `ElectricSpark`，模擬懸垂裸露電線與端點高壓電弧火花。
+   - `tentacle.rs`：`DocOckTentacle`，實作八爪博士式多關節機械錐爪、反向運動學 (IK) 關節求解與拋物線踏步步態。
+   - `creature.rs`：`SlimeCreature`，實作 10 階體型進化演算法、有機深質聚合物多層呼吸形變、萬有引力牽引與黑洞超渡吞食機制。
+   - `environment.rs`：`Environment`，控制 5 檔螢光酸雨、水花漣漪擴散、全域閃電光閃與廢土電網背景。
+   - `lib.rs`：`WorldSimulation`，透過 `wasm-bindgen` 將完整模擬世界與 2D 畫布渲染邏輯匯出為 WebAssembly。
+4. **前端橋接與整合**：
+   - 編譯產出 `pkg/m2_species.js` 與 `m2_species_bg.wasm`。
+   - 更新 `m2-species/sketch.js` 作為 ES module 入口，以 60 FPS 驅動 Wasm 迴圈，並將 HUD 與側邊欄滑桿無縫綁定至 Rust 模擬器。
+   - 更新 `m2-species/index.html`，配置 full-screen Canvas，徹底根絕以往大量頂點運算的卡頓。
+   - 更新 `m2-species/README.md` 架構說明與 AI 揭露欄。
+
+---
+
+## 2026-10-22 — M2 物種與環境深度調校（觸手質感、史萊姆水感、微觀視角、齒輪錯位、雲影與全氣候）
+
+### 使用者回饋與修正重點
+1. **觸手還原（非八爪機器怪物）**：重寫 `tentacle.rs`，全面捨棄生硬機械蜘蛛爪與三叉金屬夾，重構為具有柔軟起伏、有機弧線漸縮（基底渾厚至末梢 4.5px 柔和感知點）與原生質青藍電脈動的「有機黏液觸手（Slime Tentacle / Pseudopod）」。
+2. **史萊姆液態水感真實化**：在 `creature.rs` 中實作奇異博士斗篷行進波浪（後方隨移動起伏翻捲）、行進方向水滴拉伸、月牙狀水光濕潤高光（Specular Highlights）、體表周圍微小黏液珠（Droplets）以及體內呼吸脈動的螢光生物腺體（Neon Glands）。
+3. **微觀斜上方視角（蹲下看地上螞蟻視角）**：在 `environment.rs` 中重設透視角度，雨滴加粗並帶 68 度斜角俯衝，落地漣漪轉為水平扁平橢圓（`r * 0.38`），並伴隨向上彈跳微觀水花飛濺粒子。
+4. **齒輪非對稱外露與錯位排布**：實作 7 顆不同半徑、齒數、金屬鏽蝕色澤與不同正反轉速的齒輪星座排布；外露突出於半徑外的齒輪透過肉質黏液蹼（Slime Webbing）牽引固定。
+5. **體表游走電絲**：新增動態生成之高壓電弧（`BodyFilament`），青藍色與琥珀金色折線電弧隨機在體表及齒輪間閃爍爬行。
+6. **三種完整氣候型態**：
+   - `normal`（乾燥廢土）：暖色廢土微塵懸浮。
+   - `amber-rain`（午後螢光橘雨）：斜向粗雨滴、扁平橢圓漣漪與水花。
+   - `freezing`（夜間極凍死電）：冷螢光青藍六角冰晶雪花旋轉飄落。
+7. **背景雲朵漫游陰影**：新增 6 團巨大柔邊雲影（`CloudShadow`）緩慢斜向漫游飄移，重現如同大草坪雲層遮陽時忽明忽暗的自然天候光影。
+
+

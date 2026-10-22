@@ -32,26 +32,23 @@
 
 ---
 
-## 程式與動態機制設計 (p5.js 物件導向架構)
+## 程式與動態機制設計 (Rust WebAssembly + Canvas 2D 極速引擎)
 
-本專案於 `sketch.js` 採用物件導向（OOP）架構模組化實作：
+為解決瀏覽器在密集有機頂點變形、多關節反向運動學 (IK) 與大量粒子運算時的性能瓶頸（卡頓），本專案自 2026-10-22 起全面改由 **Rust (WebAssembly)** 核心驅動，徹底將運算負載從 JavaScript 主執行緒解放至近乎原生 C++ 的極限效能！
 
-1. **`SlimeCreature` (奇異博士披肩流波、螢光器官與超渡進食)**：
-   - 在 `drawDeepSlimeBody()` 中引入行進波函數：`cloakWave = sin(a * 4 - frameCount * 0.18 + spd * 2.5) * (spd * 12.0) * max(0, -cosDiff)`，模擬斗篷下擺在後方的起伏翻捲。
-   - `drawNeonGlands()`：使用 ADD 混色多層光暈，繪製體內呼吸閃爍的螢光青藍與螢光橘腺體。
-   - `drawBodyFilaments()`：動態生成在體表黏液游走的折線電絲。
-   - `feedingTarget`：以光罩吸引獵物並超渡式消滅，附黑洞吸入動畫與殘留物。
-2. **`DocOckTentacle` (錨定拉動與多爪分工)**：
-   - 計算前向點積（`forwardDot`），前爪跨距加成可達約 `3.15 * r`，拉到極限後錨定，再平滑收回。
-   - 多爪輪流/同步参与推进；非領爪支援跟隨，避免各自亂抓。
-3. **`drawAtmosphericWasteland()` (雲影、大型光斑、掃描光束與全景閃電)**：
-   - 多個巨大不規則陽光斑向右緩慢漂移、消失後再進入；
-   - 燈塔式矩形光束緩慢掃過整個畫面；
-   - `lightningFlash` 由 UI 頻率滑桿控制，支援串閃與不同亮度/時長。
-4. **`handleWeatherEffects()` (俯視角度螢光雨雪)**：
-   - 俯視 35 度斜向雨痕 ＋ 地面圓形水花漣漪池；
-   - 俯視冷螢光青藍色旋轉冰晶粒子。
-5. **殘留物系統**：`preyResidues` 在進食位置生成，數秒後淡出。
+* **Rust 物件導向模組劃分 (`m2-species/rust-species/src/`)**：
+  1. **`math.rs`**：2D 向量數學（`Vec2`）、快速隨機數生成器（`FastRng`）與高效平滑噪波函數。
+  2. **`gear.rs`**：`Gear` 結構體，掌管同化之金屬齒輪旋轉、齒槽頂點與鉚釘軸心繪製。
+  3. **`wire.rs`**：`BioWire` 與 `ElectricSpark`，模擬裸露懸垂電線與端點高壓電火花粒子系統。
+  4. **`tentacle.rs`**：`DocOckTentacle`，實作八爪博士式機械錐爪、多關節反向運動學 (IK) 求解與拋物線踏步循環。
+  5. **`creature.rs`**：`SlimeCreature`，涵蓋 10 階體型進化演算法、有機深質聚合物多層三角形變、萬有引力牽引與黑洞超渡吞食機制。
+  6. **`environment.rs`**：`Environment`，控制 5 檔螢光酸雨、落水漣漪擴散、全域閃電光閃與廢土電網背景。
+  7. **`lib.rs`**：`WorldSimulation`，透過 `wasm-bindgen` 將整個模擬狀態機與 2D 畫布渲染接口無縫暴露給 WebAssembly。
+
+* **網頁前端整合 (`sketch.js` + `index.html`)**：
+  - 前端僅需極少量的膠水程式碼（Glue Code）載入 `pkg/m2_species.js` 與 `m2_species_bg.wasm`。
+  - 保留完整原生網頁體驗，依然完全符合**「對著 index.html 按 Live Preview 看結果」**之作業交付規範。
+  - 歷史 p5.js 版本完整封存於 `m2-species-backup-20261022/` 與 `m2-species-backup-20261015/`。
 
 ---
 
@@ -79,6 +76,6 @@
 | 項目 | 內容 |
 |------|------|
 | 工具 | Antigravity (Gemini 3.8 Flash)；CatJam (OpenCode) |
-| 日期 | 2026-10-15 |
-| prompt 摘要 | 重大視覺與動態升級：加入奇異博士披肩般行進波浪流動與水感黏液；修正為俯視角度的短促微傾螢光橘雨痕（落地炸開漣漪）與冷螢光青藍旋轉雪花；設計背景動態光影（雲朵陰影移動、白色月光光束、全景閃電瞬間強光）；前爪實作超長跨距釘地強拉推進；生物體表加入游走細電絲與呼吸螢光腺體。後續由 CatJam/OpenCode 調整：錨定拉動步態、黏液拖動感、多爪分工、超渡式吸引進食（光罩/殘留物/黑洞吸入）、粗獵追食節奏、巨大不規則光斑與掃描式矩形光束、全域閃電頻率滑桿、待機/覓食節奏。 |
-| 採用範圍 | 世界觀、物種設計、美學與生态行為由創作者 Spark 發想；AI 協助 OOP 架構、公式、粒子系統、光影/天候演算法、UI 与步態協調、README/CLAUDE 紀錄整理；反思與最終說明仍由 Spark 自行決定。 |
+| 日期 | 2026-10-15、2026-10-22 |
+| prompt 摘要 | 1. 2026-10-15：視覺與動態升級、八爪博士多關節步態、齒輪電線共生、超渡吞食與大氣環境系統。<br>2. 2026-10-22：為解決 p5.js 大量頂點運算造成的卡頓，將原始 species 檔案完整備份至 `m2-species-backup-20261022/`，並全面將物種物理模擬、反向運動學 (IK) 與 2D 畫布渲染重構為 **Rust (WebAssembly)** 高速架構，在保有網頁 Live Preview 前提下實現 60 FPS 極速體驗。 |
+| 採用範圍 | 世界觀、物種生態與藝術風格由創作者 Spark 設計；AI 協助進行 Rust 工具鏈配置、WebAssembly 模組設計 (`rust-species`)、wasm-pack 編譯、Canvas 2D 渲染整合與 README 歷程維護。 |

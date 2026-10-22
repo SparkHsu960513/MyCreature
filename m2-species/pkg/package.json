@@ -1,0 +1,15 @@
+{
+  "name": "m2_species",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "m2_species_bg.wasm",
+    "m2_species.js",
+    "m2_species.d.ts"
+  ],
+  "main": "m2_species.js",
+  "types": "m2_species.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

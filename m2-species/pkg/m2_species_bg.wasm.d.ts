@@ -1,0 +1,30 @@
+/* tslint:disable */
+/* eslint-disable */
+export const memory: WebAssembly.Memory;
+export const __wbg_worldsimulation_free: (a: number, b: number) => void;
+export const worldsimulation_get_creature_count: (a: number) => number;
+export const worldsimulation_get_exp: (a: number) => number;
+export const worldsimulation_get_exp_needed: (a: number) => number;
+export const worldsimulation_get_player_tier_name: (a: number) => [number, number];
+export const worldsimulation_new: (a: number, b: number) => number;
+export const worldsimulation_render: (a: number, b: any) => [number, number];
+export const worldsimulation_reset_alpha: (a: number) => void;
+export const worldsimulation_resize: (a: number, b: number, c: number) => void;
+export const worldsimulation_set_brightness: (a: number, b: number) => void;
+export const worldsimulation_set_gear_speed: (a: number, b: number) => void;
+export const worldsimulation_set_lightning_freq: (a: number, b: number) => void;
+export const worldsimulation_set_rain_intensity: (a: number, b: number) => void;
+export const worldsimulation_set_viscosity: (a: number, b: number) => void;
+export const worldsimulation_set_weather: (a: number, b: number, c: number) => void;
+export const worldsimulation_spawn_food: (a: number, b: number, c: number) => void;
+export const worldsimulation_spawn_random_food: (a: number) => void;
+export const worldsimulation_stimulate: (a: number, b: number, c: number) => void;
+export const worldsimulation_update: (a: number) => void;
+export const __wbindgen_exn_store: (a: number) => void;
+export const __externref_table_alloc: () => number;
+export const __wbindgen_externrefs: WebAssembly.Table;
+export const __wbindgen_free: (a: number, b: number, c: number) => void;
+export const __externref_table_dealloc: (a: number) => void;
+export const __wbindgen_malloc: (a: number, b: number) => number;
+export const __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
+export const __wbindgen_start: () => void;

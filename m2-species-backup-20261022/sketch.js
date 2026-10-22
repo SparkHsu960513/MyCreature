@@ -332,7 +332,7 @@ function drawAtmosphericWasteland(bgVal, weather) {
     let patchDirX = (frameCount * 0.012) % (TWO_PI);
     // 多個巨大不規則陽光斑：共同向右緩慢漂移，會消失在畫面外再重新進入
     let driftX = (frameCount * 0.35) % (width + 900) - 450;
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 4; i++) {
       let phase = i * 1.37 + frameCount * 0.0012;
       let lx = driftX + i * 260 + sin(phase) * 220 + noise(i * 0.9, frameCount * 0.0015) * 260 - 130;
       let ly = height * 0.45 + (i - 3) * 90 + cos(phase * 0.7) * 150 + noise(i * 2.1, frameCount * 0.0015) * 140 - 70;
@@ -976,39 +976,34 @@ class SlimeCreature {
 
     // 自主覓食探索：母體在沒有玩家指令時，也會自行探索；一般個體持續探索不原地發呆
     if (isAlpha && !hasPlayerTarget) {
-      // 看到食物就追：優先鎖定最近低階食物
+      // 單一決策：優先鎖定最近食物，否則偶爾探索（避免多個迴圈）
       let nearestPrey = null;
       let nearestDist = 520;
       for (let other of creatures) {
-        if (other === this || other.isCaptured) continue;
-        if (other.tier >= this.tier) continue;
+        if (other === this || other.isCaptured || other.tier >= this.tier) continue;
         let d = p5.Vector.dist(this.pos, other.pos);
         if (d < nearestDist) {
           nearestDist = d;
           nearestPrey = other;
         }
       }
+
       if (nearestPrey) {
         this.targetPos.set(nearestPrey.pos.x, nearestPrey.pos.y);
         this.foraging = true;
         this.isChasing = true;
       } else {
         this.isChasing = false;
-      }
-    }
-    if (isAlpha && !hasPlayerTarget) {
-      let distToCurrentTarget = p5.Vector.dist(this.targetPos, this.pos);
-      if (this.foraging && distToCurrentTarget < 18) {
-        this.foraging = false;
-      }
-      if (!this.foraging && this.commandCooldown <= 0 && this.idleTimer <= 0 && random(1) < 0.006) {
-        let wanderDist = random(90, 260);
-        let wanderAngle = random(TWO_PI);
-        this.targetPos.set(this.pos.x + cos(wanderAngle) * wanderDist, this.pos.y + sin(wanderAngle) * wanderDist);
-        this.foraging = true;
-        this.isChasing = false;
-      } else if (this.foraging && distToCurrentTarget < 18) {
-        this.foraging = false;
+        let distToCurrentTarget = p5.Vector.dist(this.targetPos, this.pos);
+        if (this.foraging && distToCurrentTarget < 18) {
+          this.foraging = false;
+        }
+        if (!this.foraging && this.commandCooldown <= 0 && this.idleTimer <= 0 && random(1) < 0.006) {
+          let wanderDist = random(90, 260);
+          let wanderAngle = random(TWO_PI);
+          this.targetPos.set(this.pos.x + cos(wanderAngle) * wanderDist, this.pos.y + sin(wanderAngle) * wanderDist);
+          this.foraging = true;
+        }
       }
     }
 
@@ -1077,7 +1072,7 @@ class SlimeCreature {
           prey.baseRadius *= shrink;
         } else {
           let residuePos = prey.pos.copy();
-          for (let i = 0; i < 18; i++) {
+          for (let i = 0; i < 9; i++) {
             preyResidues.push({
               x: residuePos.x + random(-18, 18),
               y: residuePos.y + random(-18, 18),
@@ -1126,7 +1121,7 @@ class SlimeCreature {
     }
 
     // 體表爬行的細微電絲 (Crawling Body Electrical Filaments)
-    if (random(1) < 0.25 && this.bodyFilaments.length < 5) {
+    if (random(1) < 0.18 && this.bodyFilaments.length < 3) {
       let fAngle = random(TWO_PI);
       let fRadius = this.baseRadius * random(0.3, 0.9);
       this.bodyFilaments.push({
@@ -1307,7 +1302,7 @@ class SlimeCreature {
     strokeWeight(3.2);
 
     let breath = sin(this.pulsePhase) * (5 * viscosity);
-    let points = 36;
+    let points = 24;
 
     let spd = this.vel.mag();
     let heading = this.vel.heading();
@@ -1362,9 +1357,9 @@ class SlimeCreature {
 
       // 多層螢光光暈（ADD 混色做出發光）
       noStroke();
-      for (let k = 4; k >= 1; k--) {
+      for (let k = 2; k >= 1; k--) {
         fill(red(g.color), green(g.color), blue(g.color), glowAlpha / k);
-        circle(gx, gy, gSize * (1.4 + k * 0.8));
+        circle(gx, gy, gSize * (1.4 + k * 0.7));
       }
 
       // 螢光腺體核心
@@ -1410,7 +1405,7 @@ class SlimeCreature {
     noStroke();
 
     let breath = sin(this.pulsePhase + 0.25) * (3.8 * viscosity);
-    let points = 28;
+    let points = 20;
 
     beginShape();
     for (let i = 0; i < points; i++) {
