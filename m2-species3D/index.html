@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>M2 — 機械共生黏液體 // 3D</title>
+    <style>
+      :root {
+        --accent-cyan: #35ffe0;
+        --accent-amber: #ff9540;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #cfc6b4;
+        color: #e8eef2;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI",
+          Roboto, "PingFang TC", "Noto Sans TC", sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      #scene {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+        z-index: 1;
+        touch-action: none;
+        cursor: crosshair;
+      }
+
+      /* 左上角那顆太陽的光暈，用 CSS 再補一層，讓整體更像清晨 */
+      #sunwash {
+        position: fixed;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+        mix-blend-mode: screen;
+        background:
+          radial-gradient(
+            ellipse 60% 50% at 14% -4%,
+            rgba(255, 236, 200, 0.30) 0%,
+            rgba(255, 214, 160, 0.10) 38%,
+            rgba(255, 200, 140, 0) 70%
+          );
+      }
+
+      /* 四周淡淡的暗角，讓視線集中在中央的生物身上 */
+      #vignette {
+        position: fixed;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+        background:
+          radial-gradient(
+            ellipse at 50% 56%,
+            rgba(0, 0, 0, 0) 52%,
+            rgba(30, 24, 16, 0.10) 82%,
+            rgba(24, 19, 13, 0.30) 100%
+          );
+      }
+
+      #label {
+        position: fixed;
+        left: 22px;
+        bottom: 20px;
+        z-index: 3;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 10px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(46, 54, 54, 0.62);
+        text-shadow: 0 1px 6px rgba(255, 250, 238, 0.5);
+        user-select: none;
+        pointer-events: none;
+      }
+
+      #label .dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--accent-amber);
+        box-shadow: 0 0 9px rgba(255, 149, 64, 0.9);
+        animation: pulse 2.6s ease-in-out infinite;
+      }
+
+      #label .thin {
+        color: rgba(16, 108, 100, 0.55);
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.25;
+        }
+      }
+
+      /* 開場淡入 */
+      #fade {
+        position: fixed;
+        inset: 0;
+        z-index: 4;
+        background: #e6dfd0;
+        pointer-events: none;
+        opacity: 1;
+        transition: opacity 1.6s ease;
+      }
+
+      #fade.out {
+        opacity: 0;
+      }
+
+      #error {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        z-index: 5;
+        text-align: center;
+        font-size: 14px;
+        line-height: 1.8;
+        color: #3a4344;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="scene"></canvas>
+    <div id="sunwash"></div>
+    <div id="vignette"></div>
+
+    <div id="label">
+      <span class="dot"></span>
+      <span>M2 // 機械共生黏液體</span>
+      <span class="thin">3D SPECIMEN</span>
+    </div>
+
+    <div id="fade"></div>
+
+    <div id="error">
+      這個瀏覽器或顯示環境沒有啟動 WebGL。<br />
+      請用支援 WebGL 的瀏覽器（Chrome / Edge / Firefox / Safari）開啟，
+      並確認已開啟硬體加速。
+    </div>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

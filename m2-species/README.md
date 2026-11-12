@@ -48,7 +48,7 @@
 * **網頁前端整合 (`sketch.js` + `index.html`)**：
   - 前端僅需極少量的膠水程式碼（Glue Code）載入 `pkg/m2_species.js` 與 `m2_species_bg.wasm`。
   - 保留完整原生網頁體驗，依然完全符合**「對著 index.html 按 Live Preview 看結果」**之作業交付規範。
-  - 歷史 p5.js 版本完整封存於 `m2-species-backup-20261022/` 與 `m2-species-backup-20261015/`。
+  - 歷史版本封存於 `m2-species-backup-20261112/`（2026-11-12 最新備份，內含 p5.js 與 Rust 版本）。
 
 ---
 
@@ -77,5 +77,5 @@
 |------|------|
 | 工具 | Antigravity (Gemini 3.8 Flash)；CatJam (OpenCode) |
 | 日期 | 2026-10-15、2026-10-22 |
-| prompt 摘要 | 1. 2026-10-15：視覺與動態升級、八爪博士多關節步態、齒輪電線共生、超渡吞食與大氣環境系統。<br>2. 2026-10-22：為解決 p5.js 大量頂點運算造成的卡頓，將原始 species 檔案完整備份至 `m2-species-backup-20261022/`，並全面將物種物理模擬、反向運動學 (IK) 與 2D 畫布渲染重構為 **Rust (WebAssembly)** 高速架構，在保有網頁 Live Preview 前提下實現 60 FPS 極速體驗。 |
+| prompt 摘要 | 1. 2026-10-15：視覺與動態升級、八爪博士多關節步態、齒輪電線共生、超渡吞食與大氣環境系統。<br>2. 2026-10-22：為解決 p5.js 大量頂點運算造成的卡頓，將原始 species 檔案完整備份，並全面將物種物理模擬、反向運動學 (IK) 與 2D 畫布渲染重構為 **Rust (WebAssembly)** 高速架構，在保有網頁 Live Preview 前提下實現 60 FPS 極速體驗。<br>3. 2026-11-12：將 m2-species 快照備份至 `m2-species-backup-20261112/`（覆蓋舊備份），並另建 `m2-species3D/` 以 Three.js 重現 3D 版本。 |
 | 採用範圍 | 世界觀、物種生態與藝術風格由創作者 Spark 設計；AI 協助進行 Rust 工具鏈配置、WebAssembly 模組設計 (`rust-species`)、wasm-pack 編譯、Canvas 2D 渲染整合與 README 歷程維護。 |
