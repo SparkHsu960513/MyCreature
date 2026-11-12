@@ -21,7 +21,7 @@ pub struct WorldSimulation {
     gear_speed: f64,
     viscosity: f64,
     brightness: f64,
-    pub residues: Vec<PreyResidue>,
+    residues: Vec<PreyResidue>,
 }
 
 #[wasm_bindgen]

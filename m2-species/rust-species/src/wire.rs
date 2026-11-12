@@ -60,19 +60,8 @@ impl BioWire {
         }
     }
 
-    pub fn update(&mut self, rng: &mut FastRng, center: Vec2, stimulated: bool) {
+    pub fn update(&mut self, _rng: &mut FastRng, _center: Vec2, _stimulated: bool) {
         self.spark_timer += 1.0;
-        let chance = if stimulated { 0.35 } else { 0.06 };
-
-        if rng.gen_range(0.0, 1.0) < chance {
-            let spark_origin = center + self.anchor_b;
-            let angle = rng.gen_range(0.0, TWO_PI);
-            let speed = rng.gen_range(2.0, 5.5);
-            let vel = Vec2::new(angle.cos() * speed, angle.sin() * speed);
-            self.sparks
-                .push(ElectricSpark::new(spark_origin, vel, rng.gen_range(10.0, 22.0)));
-        }
-
         self.sparks.retain_mut(|s| s.update());
     }
 
@@ -83,19 +72,20 @@ impl BioWire {
         let ctrl = Vec2::new(mid.x, mid.y + self.sag);
 
         ctx.save();
+        // 外層生化神經導管護套（深碳黑沈入膠質中）
         ctx.begin_path();
         ctx.move_to(p1.x, p1.y);
         ctx.quadratic_curve_to(ctrl.x, ctrl.y, p2.x, p2.y);
-        ctx.set_stroke_style(&JsValue::from_str("#ff8822"));
+        ctx.set_stroke_style_str("rgba(20, 28, 40, 0.75)");
         ctx.set_line_width(2.0);
         ctx.stroke();
 
-        // 內核高光細銅線
+        // 內核微弱生物電青藍導線
         ctx.begin_path();
         ctx.move_to(p1.x, p1.y);
         ctx.quadratic_curve_to(ctrl.x, ctrl.y, p2.x, p2.y);
-        ctx.set_stroke_style(&JsValue::from_str("#ffdd88"));
-        ctx.set_line_width(0.8);
+        ctx.set_stroke_style_str("rgba(56, 189, 248, 0.45)");
+        ctx.set_line_width(0.9);
         ctx.stroke();
         ctx.restore();
 

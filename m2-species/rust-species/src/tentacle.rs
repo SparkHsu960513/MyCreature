@@ -148,9 +148,9 @@ impl SlimeTentacle {
             nodes.push(spine_pt + perp);
         }
 
-        // 大幅加粗：基底渾厚強烈 (body_radius * 0.8)，且根部併入身體內部，讓身體與觸手融合為一團
-        let root_thick = body_radius * 0.8;
-        let tip_thick = 5.0;
+        // 適度縮減厚度比例，使肢體比例更修長流暢
+        let root_thick = body_radius * 0.62;
+        let tip_thick = 3.2;
 
         let mut left_contour = Vec::with_capacity(node_count);
         let mut right_contour = Vec::with_capacity(node_count);
@@ -173,7 +173,7 @@ impl SlimeTentacle {
 
         ctx.save();
 
-        // 1. 繪製渾厚深黑有機質肉身 (高飽和外緣與強烈存在感)
+        // 1. 繪製渾厚深黑有機質肉身 (精緻邊緣)
         ctx.begin_path();
         ctx.move_to(left_contour[0].x, left_contour[0].y);
         for pt in left_contour.iter().skip(1) {
@@ -187,60 +187,66 @@ impl SlimeTentacle {
 
         ctx.set_fill_style_str("rgba(8, 10, 14, 0.98)");
         ctx.fill();
-        ctx.set_stroke_style_str("rgba(65, 88, 110, 0.95)");
-        ctx.set_line_width(3.0);
+        ctx.set_stroke_style_str("rgba(55, 75, 95, 0.75)");
+        ctx.set_line_width(2.0);
         ctx.stroke();
 
-        // 2. 特效：觸手兩側螢光發光吸盤／感覺器官 (Bio-luminescent Sensory Pores)
+        // 2. 特效：觸手兩側極細微的生物感知點 (柔和不刺眼)
         for i in 2..(node_count - 2) {
-            if i % 2 == 0 {
+            if i % 3 == 0 {
                 let l_pore = left_contour[i];
                 let r_pore = right_contour[i];
 
                 ctx.begin_path();
-                ctx.arc(l_pore.x, l_pore.y, 2.2, 0.0, TWO_PI)?;
-                ctx.arc(r_pore.x, r_pore.y, 2.2, 0.0, TWO_PI)?;
-                ctx.set_fill_style_str("rgba(0, 255, 200, 0.85)");
+                ctx.arc(l_pore.x, l_pore.y, 1.2, 0.0, TWO_PI)?;
+                ctx.arc(r_pore.x, r_pore.y, 1.2, 0.0, TWO_PI)?;
+                ctx.set_fill_style_str("rgba(0, 220, 200, 0.35)");
                 ctx.fill();
             }
         }
 
-        // 3. 特效：沿著觸手脊柱奔流的高壓生物電脈衝光流 (High-Voltage Electric Pulse Packet)
+        // 3. 特效：整隻觸手生物電呼吸燈 (Bioluminescent Respiration Glow)
+        // 捨棄突兀跑動閃爍的球，改為整隻觸手平滑如呼吸般明暗漸變
+        let breath = (self.mount_angle * 1.5 + self.wave_phase * 0.42).sin() * 0.5 + 0.5;
+
+        // 外層柔和呼吸光暈
         ctx.begin_path();
         ctx.move_to(nodes[0].x, nodes[0].y);
         for pt in nodes.iter().skip(1) {
             ctx.line_to(pt.x, pt.y);
         }
-        ctx.set_stroke_style_str("rgba(0, 220, 240, 0.45)");
-        ctx.set_line_width(2.6);
+        let halo_alpha = 0.04 + 0.16 * breath;
+        let halo_width = 3.0 + 4.0 * breath;
+        ctx.set_stroke_style_str(&format!("rgba(0, 210, 255, {:.3})", halo_alpha));
+        ctx.set_line_width(halo_width);
         ctx.stroke();
 
-        // 在觸手脈衝位置畫出熾熱光核
-        let pulse_idx = ((self.electric_pulse_t * (node_count as f64 - 1.0)) as usize).min(node_count - 1);
-        let pulse_pt = nodes[pulse_idx];
+        // 核心脊柱生化電神經呼吸流
         ctx.begin_path();
-        ctx.arc(pulse_pt.x, pulse_pt.y, 4.2, 0.0, TWO_PI)?;
-        ctx.set_fill_style_str("#00ffff");
-        ctx.fill();
-        ctx.begin_path();
-        ctx.arc(pulse_pt.x, pulse_pt.y, 2.0, 0.0, TWO_PI)?;
-        ctx.set_fill_style_str("#ffffff");
-        ctx.fill();
+        ctx.move_to(nodes[0].x, nodes[0].y);
+        for pt in nodes.iter().skip(1) {
+            ctx.line_to(pt.x, pt.y);
+        }
+        let core_alpha = 0.18 + 0.62 * breath;
+        let core_width = 1.0 + 1.2 * breath;
+        ctx.set_stroke_style_str(&format!("rgba(130, 240, 255, {:.3})", core_alpha));
+        ctx.set_line_width(core_width);
+        ctx.stroke();
 
         // 4. 尖端著地放電火花特效
         for spk in &self.ground_sparks {
             let p = spk.life / 12.0;
             ctx.begin_path();
-            ctx.arc(spk.pos.x, spk.pos.y, 2.2 * p, 0.0, TWO_PI)?;
-            ctx.set_fill_style_str(&format!("rgba(0, 255, 230, {})", p));
+            ctx.arc(spk.pos.x, spk.pos.y, 2.0 * p, 0.0, TWO_PI)?;
+            ctx.set_fill_style_str(&format!("rgba(0, 255, 230, {:.2})", p));
             ctx.fill();
         }
 
-        // 5. 觸手尖端發光錨定感知頭
+        // 5. 觸手尖端柔和呼吸感知末梢（配合呼吸燈頻率同步亮暗）
         let tip_pt = nodes[node_count - 1];
         ctx.begin_path();
-        ctx.arc(tip_pt.x, tip_pt.y, 4.0, 0.0, TWO_PI)?;
-        ctx.set_fill_style_str("#ff8811");
+        ctx.arc(tip_pt.x, tip_pt.y, 2.2 + 1.0 * breath, 0.0, TWO_PI)?;
+        ctx.set_fill_style_str(&format!("rgba(140, 235, 255, {:.2})", 0.35 + 0.55 * breath));
         ctx.fill();
 
         ctx.restore();

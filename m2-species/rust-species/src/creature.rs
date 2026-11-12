@@ -64,6 +64,7 @@ pub struct SlimeCreature {
     pub is_captured: bool,
     pub blackhole_anim: f64,
     pub hunt_phase: f64,
+    pub pull_vec: Vec2,
 }
 
 impl SlimeCreature {
@@ -75,39 +76,32 @@ impl SlimeCreature {
         let angle_step = TWO_PI / (tentacle_count as f64);
         for i in 0..tentacle_count {
             let angle = i as f64 * angle_step;
-            let reach = radius * 2.1 + 40.0;
+            let reach = radius * 2.1 + 28.0;
             tentacles.push(SlimeTentacle::new(angle, reach));
         }
 
-        // 2. 初始化強烈錯位且外露的機械齒輪群
+        // 2. 初始化核心咬合齒輪群（整齊內嵌於果凍中心，告別雜亂外露）
         let gears = Self::build_gears(radius, tier);
 
-        // 3. 裸露生化電線
+        // 3. 體內生化電導管（結構性連結核心與偽足）
         let mut wires = Vec::new();
-        let wire_count = (tier + 2).min(8);
-        for i in 0..wire_count {
-            let a = Vec2::from_angle(i as f64 * (TWO_PI / wire_count as f64)) * (radius * 0.45);
-            let b = Vec2::from_angle((i as f64 + 1.6) * (TWO_PI / wire_count as f64)) * (radius * 0.75);
-            wires.push(BioWire::new(a, b, 10.0));
+        let a1 = Vec2::new(-radius * 0.12, -radius * 0.08);
+        let b1 = Vec2::new(radius * 0.28, -radius * 0.18);
+        wires.push(BioWire::new(a1, b1, radius * 0.14));
+
+        if tier >= 2 {
+            let a2 = Vec2::new(radius * 0.14, radius * 0.10);
+            let b2 = Vec2::new(-radius * 0.24, radius * 0.24);
+            wires.push(BioWire::new(a2, b2, -radius * 0.12));
         }
 
-        // 4. 周圍微小懸浮黏液珠 (Droplets)
-        let mut droplets = Vec::new();
-        let mut rng = FastRng::new(54321 + tier as u32);
-        for _ in 0..((radius * 0.16) as usize).max(4) {
-            droplets.push(SlimeDroplet {
-                angle: rng.gen_range(0.0, TWO_PI),
-                dist_factor: rng.gen_range(0.9, 1.35),
-                radius: rng.gen_range(radius * 0.12, radius * 0.26),
-                orbit_speed: rng.gen_range(-0.015, 0.015),
-            });
-        }
+        // 4. 體周微液泡（清空體外散落懸浮球，增強生物凝聚一體感）
+        let droplets = Vec::new();
 
-        // 5. 體內發光腺體 (Neon Glands)
+        // 5. 體內核心發光腺體 (Neon Glands - 柔和深嵌於中心)
         let glands = vec![
-            NeonGland { offset_angle: 0.5, dist_r: radius * 0.44, size: radius * 0.28, is_cyan: true },
-            NeonGland { offset_angle: 2.6, dist_r: radius * 0.40, size: radius * 0.22, is_cyan: false },
-            NeonGland { offset_angle: -1.8, dist_r: radius * 0.50, size: radius * 0.30, is_cyan: true },
+            NeonGland { offset_angle: 0.3, dist_r: radius * 0.20, size: radius * 0.18, is_cyan: true },
+            NeonGland { offset_angle: 3.1, dist_r: radius * 0.16, size: radius * 0.14, is_cyan: false },
         ];
 
         Self {
@@ -130,26 +124,29 @@ impl SlimeCreature {
             is_captured: false,
             blackhole_anim: 0.0,
             hunt_phase: 0.0,
+            pull_vec: Vec2::default(),
         }
     }
 
     pub fn build_gears(radius: f64, tier: usize) -> Vec<Gear> {
+        // 清晰、豐富且精密咬合的核心機械鐘錶齒輪群（完整展現機械內核）
         let gear_defs = [
-            (-0.25, 0.15, 0.46, 6, 0.055, "#9a8559", false),
-            (1.15, -0.55, 0.38, 5, -0.095, "#6b727b", true),  // 外露右上
-            (0.22, 1.10, 0.32, 4, 0.130, "#855742", true),   // 外露下方
-            (-0.95, -0.50, 0.30, 5, -0.170, "#5a7366", true), // 外露左上
-            (-0.65, 0.60, 0.26, 5, 0.190, "#786882", true),  // 外露左下
-            (0.60, 0.75, 0.24, 4, -0.120, "#9a8559", true),  // 側邊
-            (-1.05, 0.35, 0.22, 4, 0.160, "#6b727b", true),  // 極左端
+            (-0.06, -0.04, 0.52, 8, 0.045, "#64748b", false), // 主核心鈦鋼驅動大齒輪
+            (0.32, 0.10, 0.38, 6, -0.060, "#94a3b8", false),  // 嚙合反向轉動副齒輪
+            (-0.24, 0.22, 0.28, 5, 0.085, "#d97706", false),  // 暖金色調速機械齒輪
+            (0.08, -0.28, 0.22, 4, -0.110, "#cbd5e1", false), // 頂部高轉速微型傳動齒輪
         ];
 
-        let max_gears = (tier + 2).min(gear_defs.len());
+        let max_gears = match tier {
+            1 => 2,
+            2 => 3,
+            _ => 4,
+        };
         let mut gears = Vec::with_capacity(max_gears);
 
         for (dx, dy, r_ratio, teeth, speed, col, exposed) in gear_defs.iter().take(max_gears) {
             let offset = Vec2::new(radius * dx, radius * dy);
-            let g_r = (radius * r_ratio).max(8.0);
+            let g_r = (radius * r_ratio).max(7.0);
             gears.push(Gear::new(offset, g_r, *teeth, *speed, col, *exposed));
         }
 
@@ -158,7 +155,7 @@ impl SlimeCreature {
 
     pub fn tier_attributes(tier: usize) -> (f64, usize) {
         let clamped = tier.clamp(1, 10);
-        let radius = 26.0 + (clamped as f64 - 1.0) * 13.0;
+        let radius = 17.0 + (clamped as f64 - 1.0) * 8.5;
         let tentacle_count = match clamped {
             1 => 3,
             2 => 4,
@@ -316,23 +313,24 @@ impl SlimeCreature {
             f.life > 0.0
         });
 
-        // 黏液珠旋轉更新
-        for d in &mut self.droplets {
-            d.angle += d.orbit_speed;
-        }
+        // 牽引力緩慢衰減
+        self.pull_vec = self.pull_vec * 0.88;
 
-        // 黑洞引力吞食
+        // 幽浮牽引光束與萬有引力吸食
         if self.is_alpha {
-            let capture_reach = self.base_radius * 2.8;
+            let capture_reach = self.base_radius * 4.8;
             for other in prey_list.iter_mut() {
                 if other.is_captured || other.tier >= self.tier {
                     continue;
                 }
                 let d = self.pos.dist(other.pos);
                 if d < capture_reach {
-                    let pull = (self.pos - other.pos).normalize() * 4.2;
+                    // 強烈萬有引力牽引：越近吸力越強烈
+                    let pull_ratio = ((capture_reach - d) / capture_reach).clamp(0.25, 1.0);
+                    let pull = (self.pos - other.pos).normalize() * (3.6 + pull_ratio * 4.8);
                     other.pos = other.pos + pull;
-                    other.blackhole_anim = (other.blackhole_anim + 0.05).min(1.0);
+                    other.pull_vec = (self.pos - other.pos).normalize() * (0.6 + pull_ratio * 0.8);
+                    other.blackhole_anim = (other.blackhole_anim + 0.045).min(1.0);
 
                     if d < self.base_radius * 0.85 {
                         other.is_captured = true;
@@ -356,7 +354,7 @@ impl SlimeCreature {
         self.tentacles.clear();
         for i in 0..new_t_count {
             let angle = i as f64 * angle_step;
-            let reach = new_r * 2.1 + 40.0;
+            let reach = new_r * 2.1 + 28.0;
             self.tentacles.push(SlimeTentacle::new(angle, reach));
         }
 
@@ -370,139 +368,182 @@ impl SlimeCreature {
 
         ctx.save();
 
-        // 1. 底層渾厚強韌有機觸手
+        // 1. 底層有機觸手 (Pseudopods)
         for t in &self.tentacles {
             t.render(ctx, self.pos, self.base_radius)?;
         }
 
-        // 2. 懸掛外露齒輪的肉質黏液蹼 (Slime Webbing)
-        self.render_gear_slime_webbing(ctx)?;
+        // 2. 偽足黏液過渡蹼 (將所有肢體與身體基底自然平滑熔接為單一史萊姆有機體)
+        self.render_pseudopod_webbing(ctx)?;
 
-        // 3. 獵捕光罩
+        // 3. 獵捕幽浮光罩 (UFO Tractor Forcefield Dome)
         if self.is_alpha && self.state == CreatureState::Hunting {
-            let glow_r = self.base_radius * 2.6;
+            let pulse = (self.pulse_phase * 2.0).sin() * 0.12 + 1.0;
 
-            // 【設計 1：獵捕黑洞吸積盤】旋轉光環，強化「吸食」的史詩感
-            for i in 0..3 {
-                let ring_r = glow_r * (1.35 + 0.3 * i as f64);
-                let rot = self.hunt_phase + i as f64 * 2.1;
+            // 多層次漸層光暈光罩 (層次擴散幽藍微光)
+            for k in (1..=5).rev() {
+                let k_f = k as f64;
+                let layer_r = (self.base_radius * (1.5 + k_f * 0.45)) * pulse;
+                let alpha = (0.04 / k_f + 0.015 * (self.pulse_phase * 3.0).sin().abs()).clamp(0.01, 0.25);
                 ctx.begin_path();
-                ctx.ellipse(self.pos.x, self.pos.y, ring_r, ring_r * 0.5, rot, 0.0, TWO_PI)?;
-                let (c1, c2, c3) = if i == 0 { (255u8, 140u8, 40u8) } else if i == 1 { (255u8, 190u8, 90u8) } else { (0u8, 200u8, 255u8) };
-                ctx.set_stroke_style_str(&format!("rgba({}, {}, {}, 0.5)", c1, c2, c3));
-                ctx.set_line_width(2.0);
-                ctx.stroke();
+                ctx.arc(self.pos.x, self.pos.y, layer_r, 0.0, TWO_PI)?;
+                ctx.set_fill_style_str(&format!("rgba(90, 220, 255, {:.3})", alpha));
+                ctx.fill();
             }
 
-            // 【設計 3：吸食渦】旋轉渦流光暈，強化「被吸」的拉力感
-            for i in 0..2 {
-                let vr = glow_r * (1.6 + 0.5 * i as f64);
-                let rot = self.hunt_phase * 1.6 + i as f64 * 4.7;
-                ctx.begin_path();
-                ctx.ellipse(self.pos.x, self.pos.y, vr, vr * 0.55, rot, 0.0, TWO_PI)?;
-                ctx.set_stroke_style_str("rgba(255, 130, 40, 0.32)");
-                ctx.set_line_width(1.5);
-                ctx.stroke();
-            }
-
+            // 核心力場邊界環
             ctx.begin_path();
-            ctx.arc(self.pos.x, self.pos.y, glow_r, 0.0, TWO_PI)?;
-            ctx.set_stroke_style_str("rgba(255, 120, 20, 0.38)");
-            ctx.set_line_width(2.5);
+            ctx.arc(self.pos.x, self.pos.y, self.base_radius * 2.1 * pulse, 0.0, TWO_PI)?;
+            ctx.set_stroke_style_str("rgba(130, 235, 255, 0.45)");
+            ctx.set_line_width(1.5);
             ctx.stroke();
+
+            // 幽浮強效牽引光束 (Powerful UFO Tractor Beam & Suction Vortex)
+            let to_target = self.target - self.pos;
+            let dist = to_target.length();
+            if dist > 8.0 {
+                let dir = to_target.normalize();
+                let perp = Vec2::new(-dir.y, dir.x);
+                let cone_spread = (self.base_radius * 0.9).min(dist * 0.42);
+
+                // 牽引力場光錐
+                ctx.begin_path();
+                ctx.move_to(self.pos.x, self.pos.y);
+                ctx.line_to(self.target.x + perp.x * cone_spread, self.target.y + perp.y * cone_spread);
+                ctx.line_to(self.target.x - perp.x * cone_spread, self.target.y - perp.y * cone_spread);
+                ctx.close_path();
+                ctx.set_fill_style_str("rgba(56, 189, 248, 0.16)");
+                ctx.fill();
+
+                // 雙重螺旋牽引光流 (Helical Vortex Suction Stream - 牽引包裹獵物)
+                for spiral in 0..2 {
+                    ctx.begin_path();
+                    let segs = 24;
+                    for seg in 0..=segs {
+                        let t = seg as f64 / segs as f64;
+                        let base_pt = self.target.lerp(self.pos, t);
+                        let wave = ((t * 8.5 - self.hunt_phase * 3.2 + spiral as f64 * std::f64::consts::PI).sin()) * (cone_spread * (1.0 - t * 0.55));
+                        let pt = base_pt + perp * wave;
+                        if seg == 0 { ctx.move_to(pt.x, pt.y); } else { ctx.line_to(pt.x, pt.y); }
+                    }
+                    ctx.set_stroke_style_str("rgba(130, 235, 255, 0.55)");
+                    ctx.set_line_width(1.8);
+                    ctx.stroke();
+                }
+
+                // 牽引吸附流光粒子 (高速向母體吸食逆流)
+                for s in 0..6 {
+                    let s_phase = (self.hunt_phase * 2.0 + s as f64 * 0.166) % 1.0;
+                    let p_stream = self.target.lerp(self.pos, s_phase);
+                    let spread_scale = (s as f64 - 2.5) / 2.5;
+                    let pt = p_stream + perp * (spread_scale * cone_spread * (1.0 - s_phase * 0.8));
+                    let p_size = 3.0 * (1.0 - s_phase * 0.55);
+                    ctx.begin_path();
+                    ctx.arc(pt.x, pt.y, p_size, 0.0, TWO_PI)?;
+                    ctx.set_fill_style_str("rgba(180, 245, 255, 0.88)");
+                    ctx.fill();
+                }
+            }
         }
 
-        // 4. 極強烈真實液態史萊姆本體 (大幅增強行進波浪、黏稠起伏與果凍邊緣)
-        self.render_slime_body(ctx, viscosity)?;
-
-        // 5. 體內發光腺體 (Neon Glands)
-        self.render_neon_glands(ctx)?;
-
-        // 6. 齒輪
+        // 4. 體內核心咬合齒輪群 (位於膠質深層，被史萊姆凝膠完全包覆包裹)
         for g in &self.gears {
             g.render(ctx, self.pos)?;
         }
 
-        // 7. 外露電線
+        // 5. 體內生化電導管 (深嵌於膠體內部，成為內在脈絡)
         for w in &self.wires {
             w.render(ctx, self.pos)?;
         }
 
-        // 8. 體表游走電絲 (Crawling Body Electrical Filaments)
+        // 6. 體內核心發光腺體 (Neon Glands - 自膠體深處向外漫射柔光)
+        self.render_neon_glands(ctx)?;
+
+        // 7. 晶透厚重史萊姆主體果凍外包膜 (透明度約 50%，使內部豐富齒輪清晰可見)
+        self.render_slime_body(ctx, viscosity)?;
+
+        // 8. 體表微細游走電絲 (Crawling Body Electrical Filaments)
         self.render_filaments(ctx)?;
 
-        // 9. 體周邊水感黏液珠 (Droplets)
-        self.render_droplets(ctx)?;
-
-        // 10. 厚重水光高光 (Specular Highlights - 呈現真實史萊姆液態反光)
+        // 9. 厚重水光高光與折射光 (Specular Highlights - 呈現真實史萊姆液態反光)
         self.render_specular_highlights(ctx)?;
 
         ctx.restore();
         Ok(())
     }
 
-    fn render_gear_slime_webbing(&self, ctx: &CanvasRenderingContext2d) -> Result<(), JsValue> {
-        let r = self.base_radius;
+    fn render_pseudopod_webbing(&self, ctx: &CanvasRenderingContext2d) -> Result<(), JsValue> {
+        let count = self.tentacles.len();
+        if count < 2 {
+            return Ok(());
+        }
         ctx.save();
-        ctx.set_fill_style_str("rgba(8, 10, 14, 0.96)");
-        ctx.set_stroke_style_str("rgba(55, 75, 95, 0.85)");
-        ctx.set_line_width(2.0);
+        ctx.set_fill_style_str("rgba(8, 12, 18, 0.94)");
+        ctx.set_stroke_style_str("rgba(45, 70, 95, 0.65)");
+        ctx.set_line_width(1.6);
 
-        for g in &self.gears {
-            if g.is_exposed {
-                let gx = self.pos.x + g.offset.x;
-                let gy = self.pos.y + g.offset.y;
-                let root_angle = g.offset.y.atan2(g.offset.x);
-
-                let p1 = self.pos + Vec2::from_angle(root_angle - 0.5) * (r * 0.85);
-                let p2 = self.pos + Vec2::from_angle(root_angle + 0.5) * (r * 0.85);
-
-                ctx.begin_path();
-                ctx.move_to(p1.x, p1.y);
-                ctx.quadratic_curve_to(self.pos.x + g.offset.x * 0.5, self.pos.y + g.offset.y * 0.5, gx, gy);
-                ctx.quadratic_curve_to(self.pos.x + g.offset.x * 0.5, self.pos.y + g.offset.y * 0.5, p2.x, p2.y);
-                ctx.close_path();
-                ctx.fill();
-                ctx.stroke();
+        let r = self.base_radius;
+        for i in 0..count {
+            let next_i = (i + 1) % count;
+            let a1 = self.tentacles[i].mount_angle;
+            let mut a2 = self.tentacles[next_i].mount_angle;
+            if a2 < a1 {
+                a2 += TWO_PI;
             }
+            let mid_a = (a1 + a2) * 0.5;
+
+            let p1 = self.pos + Vec2::from_angle(a1) * (r * 0.88);
+            let p2 = self.pos + Vec2::from_angle(a2) * (r * 0.88);
+            let ctrl = self.pos + Vec2::from_angle(mid_a) * (r * 0.42);
+
+            ctx.begin_path();
+            ctx.move_to(p1.x, p1.y);
+            ctx.quadratic_curve_to(ctrl.x, ctrl.y, p2.x, p2.y);
+            ctx.line_to(self.pos.x, self.pos.y);
+            ctx.close_path();
+            ctx.fill();
+            ctx.stroke();
         }
         ctx.restore();
         Ok(())
     }
 
     fn render_slime_body(&self, ctx: &CanvasRenderingContext2d, viscosity: f64) -> Result<(), JsValue> {
-        let vert_count = 32;
+        let vert_count = 36;
         let angle_step = TWO_PI / (vert_count as f64);
-        let pulse = self.pulse_phase.sin() * (5.5 * viscosity);
-        let r = (self.base_radius + pulse) * (1.0 - self.blackhole_anim * 0.85);
+        let breath = self.pulse_phase.sin() * (2.8 * viscosity);
+        let r = (self.base_radius + breath) * (1.0 - self.blackhole_anim * 0.85);
 
         let spd = self.vel.length();
         let heading = self.vel.heading();
 
-        // 1. 外層厚重液態黏液輪廓（魔浮斗篷行進波浪 + 表面張力拉扯）
+        // 1. 厚質晶透黑曜凝膠外包膜 (深質半透明流體果凍主體)
         ctx.begin_path();
         for i in 0..vert_count {
             let a = i as f64 * angle_step;
             let diff = a - heading;
             let cos_diff = diff.cos();
 
-            // 後方大幅度行進波 (Undulating traveling waves)
-            let mut wave = 0.0;
-            if spd > 0.15 {
-                let wave_val = (a * 4.0 - self.pulse_phase * 2.2 + spd * 2.8).sin();
-                wave = wave_val * (spd * 14.0) * (-cos_diff).max(0.0);
-            }
+            // 前方行進方向水感拉伸
+            let stretch = if spd > 0.1 { cos_diff * (spd * 6.5) } else { 0.0 };
 
-            // 前端行進方向水滴狀有機拉伸
-            let mut stretch = 0.0;
-            if spd > 0.15 {
-                stretch = cos_diff * (spd * 12.0);
-            }
+            // 後方平滑拖曳
+            let trail = if spd > 0.1 && cos_diff < 0.0 { -cos_diff * (spd * 4.5) } else { 0.0 };
 
-            // 有機不規則黏液凸泡 (Fluid Lobes)
-            let noise_val = pseudo_noise(a.cos() * 1.8, a.sin() * 1.8 + self.pulse_phase * 0.4);
-            let vr = r + wave + stretch + (noise_val - 0.5) * (24.0 * viscosity);
+            // 【被捕獲時的潮汐拉伸感 (Tidal Pull Deformation)】：朝向牽引力方向極度拉長
+            let to_pt = Vec2::new(a.cos(), a.sin());
+            let pull_dot = to_pt.x * self.pull_vec.x + to_pt.y * self.pull_vec.y;
+            let pull_stretch = if pull_dot > 0.0 {
+                pull_dot * (r * 2.2 * self.blackhole_anim)
+            } else {
+                -pull_dot.abs() * (r * 0.35 * self.blackhole_anim)
+            };
 
+            // 表面張力有機波動
+            let wobble = (a * 3.0 + self.pulse_phase * 1.6).sin() * (1.8 * viscosity)
+                       + (a * 2.0 - self.pulse_phase * 0.9).cos() * (1.2 * viscosity);
+
+            let vr = (r + stretch + trail + wobble + pull_stretch).max(3.0);
             let px = self.pos.x + a.cos() * vr;
             let py = self.pos.y + a.sin() * vr;
             if i == 0 {
@@ -513,19 +554,19 @@ impl SlimeCreature {
         }
         ctx.close_path();
 
-        // 深黑曜質厚重史萊姆主體
-        ctx.set_fill_style_str("rgba(8, 10, 14, 0.98)");
+        // 晶透水感深邃果凍色（透明度約 52%，讓內部的機械齒輪清楚透射出來！）
+        ctx.set_fill_style_str("rgba(12, 20, 32, 0.50)");
         ctx.fill();
-        ctx.set_stroke_style_str("rgba(70, 95, 125, 0.95)");
-        ctx.set_line_width(3.2);
+        ctx.set_stroke_style_str("rgba(80, 160, 220, 0.80)");
+        ctx.set_line_width(2.2);
         ctx.stroke();
 
-        // 2. 內層半透明果凍膠質層 (Jelly Membrane)
+        // 2. 內層晶透水感折射層 (Jelly Refraction Layer)
         ctx.begin_path();
-        let mid_r = r * 0.82;
+        let mid_r = r * 0.78;
         for i in 0..vert_count {
             let a = i as f64 * angle_step;
-            let vr = mid_r + (pseudo_noise(a.cos() * 2.2, self.pulse_phase * 0.3) - 0.5) * 10.0;
+            let vr = mid_r + (a * 2.5 + self.pulse_phase).sin() * (1.2 * viscosity);
             let px = self.pos.x + a.cos() * vr;
             let py = self.pos.y + a.sin() * vr;
             if i == 0 {
@@ -535,25 +576,7 @@ impl SlimeCreature {
             }
         }
         ctx.close_path();
-        ctx.set_fill_style_str("rgba(16, 22, 30, 0.65)");
-        ctx.fill();
-
-        // 3. 內核深黑黑洞核心
-        ctx.begin_path();
-        let inner_r = r * 0.58;
-        for i in 0..vert_count {
-            let a = i as f64 * angle_step;
-            let vr = inner_r + (pseudo_noise(a.sin() * 2.5, self.pulse_phase * 0.4) - 0.5) * 7.0;
-            let px = self.pos.x + a.cos() * vr;
-            let py = self.pos.y + a.sin() * vr;
-            if i == 0 {
-                ctx.move_to(px, py);
-            } else {
-                ctx.line_to(px, py);
-            }
-        }
-        ctx.close_path();
-        ctx.set_fill_style_str("#030406");
+        ctx.set_fill_style_str("rgba(16, 32, 48, 0.35)");
         ctx.fill();
 
         Ok(())
@@ -561,36 +584,36 @@ impl SlimeCreature {
 
     fn render_neon_glands(&self, ctx: &CanvasRenderingContext2d) -> Result<(), JsValue> {
         ctx.save();
-        let breath = (self.pulse_phase * 1.5).sin() * 3.5;
+        let breath = (self.pulse_phase * 1.5).sin() * 2.5;
 
         for g in &self.glands {
             let gx = self.pos.x + g.offset_angle.cos() * g.dist_r;
             let gy = self.pos.y + g.offset_angle.sin() * g.dist_r;
-            let gr = (g.size + breath).max(4.0);
+            let gr = (g.size + breath).max(3.0);
 
-            // 多層強烈螢光發光光暈
+            // 柔和果凍內部向外漫射暈光
             ctx.begin_path();
-            ctx.arc(gx, gy, gr * 1.4, 0.0, TWO_PI)?;
+            ctx.arc(gx, gy, gr * 1.5, 0.0, TWO_PI)?;
             if g.is_cyan {
-                ctx.set_fill_style_str("rgba(0, 255, 220, 0.35)");
+                ctx.set_fill_style_str("rgba(0, 255, 220, 0.25)");
             } else {
-                ctx.set_fill_style_str("rgba(255, 130, 20, 0.35)");
+                ctx.set_fill_style_str("rgba(255, 140, 30, 0.25)");
             }
             ctx.fill();
 
             ctx.begin_path();
             ctx.arc(gx, gy, gr, 0.0, TWO_PI)?;
             if g.is_cyan {
-                ctx.set_fill_style_str("rgba(0, 255, 200, 0.85)");
+                ctx.set_fill_style_str("rgba(0, 220, 200, 0.65)");
             } else {
-                ctx.set_fill_style_str("rgba(255, 120, 20, 0.85)");
+                ctx.set_fill_style_str("rgba(255, 130, 30, 0.65)");
             }
             ctx.fill();
 
-            // 中心亮核
+            // 中心柔和光亮核心
             ctx.begin_path();
-            ctx.arc(gx, gy, gr * 0.45, 0.0, TWO_PI)?;
-            ctx.set_fill_style_str("#ffffff");
+            ctx.arc(gx, gy, gr * 0.40, 0.0, TWO_PI)?;
+            ctx.set_fill_style_str("rgba(255, 255, 255, 0.85)");
             ctx.fill();
         }
         ctx.restore();
@@ -614,83 +637,68 @@ impl SlimeCreature {
 
             let alpha = (f.life / 10.0).clamp(0.0, 1.0);
             if f.is_cyan {
-                ctx.set_stroke_style_str(&format!("rgba(0, 255, 240, {})", alpha));
+                ctx.set_stroke_style_str(&format!("rgba(0, 255, 240, {:.2})", alpha * 0.8));
             } else {
-                ctx.set_stroke_style_str(&format!("rgba(255, 170, 40, {})", alpha));
+                ctx.set_stroke_style_str(&format!("rgba(255, 170, 40, {:.2})", alpha * 0.8));
             }
-            ctx.set_line_width(2.0);
+            ctx.set_line_width(1.5);
             ctx.stroke();
         }
         ctx.restore();
         Ok(())
     }
 
-    fn render_droplets(&self, ctx: &CanvasRenderingContext2d) -> Result<(), JsValue> {
-        ctx.save();
-        let r = self.base_radius;
-
-        for d in &self.droplets {
-            let dist = r * d.dist_factor;
-            let dx = self.pos.x + d.angle.cos() * dist;
-            let dy = self.pos.y + d.angle.sin() * dist;
-
-            ctx.begin_path();
-            ctx.arc(dx, dy, d.radius, 0.0, TWO_PI)?;
-            ctx.set_fill_style_str("rgba(10, 12, 16, 0.95)");
-            ctx.fill();
-            ctx.set_stroke_style_str("rgba(80, 110, 140, 0.85)");
-            ctx.set_line_width(1.8);
-            ctx.stroke();
-
-            // 小水珠高光
-            ctx.begin_path();
-            ctx.arc(dx - d.radius * 0.35, dy - d.radius * 0.35, d.radius * 0.25, 0.0, TWO_PI)?;
-            ctx.set_fill_style_str("rgba(255, 255, 255, 0.75)");
-            ctx.fill();
-        }
-        ctx.restore();
+    fn render_droplets(&self, _ctx: &CanvasRenderingContext2d) -> Result<(), JsValue> {
+        // 清空外露碎散小球，集中維持史萊姆主體緊湊度
         Ok(())
     }
 
     fn render_specular_highlights(&self, ctx: &CanvasRenderingContext2d) -> Result<(), JsValue> {
         let r = self.base_radius;
-        let breath = self.pulse_phase.sin() * 2.5;
+        let breath = self.pulse_phase.sin() * 1.5;
 
         ctx.save();
 
-        // 頂部大型液態水光穹頂光暈（極度濕潤反光）
+        // 頂部大型半月狀濕潤水光穹頂（高反光果凍質感）
+        ctx.begin_path();
+        ctx.ellipse(
+            self.pos.x - r * 0.30,
+            self.pos.y - r * 0.30,
+            (r * 0.38 + breath * 0.3).max(4.0),
+            (r * 0.18 + breath * 0.15).max(2.5),
+            -0.45,
+            0.0,
+            TWO_PI,
+        )?;
+        ctx.set_fill_style_str("rgba(215, 240, 255, 0.50)");
+        ctx.fill();
+
+        // 頂部焦點水珠熾白高光
         ctx.begin_path();
         ctx.ellipse(
             self.pos.x - r * 0.36,
             self.pos.y - r * 0.36,
-            (r * 0.42 + breath).max(5.0),
-            (r * 0.24 + breath * 0.5).max(3.0),
-            -0.38,
+            (r * 0.12).max(2.0),
+            (r * 0.06).max(1.2),
+            -0.45,
             0.0,
             TWO_PI,
         )?;
-        ctx.set_fill_style_str("rgba(200, 235, 255, 0.55)");
+        ctx.set_fill_style_str("rgba(255, 255, 255, 0.88)");
         ctx.fill();
 
-        // 核心最亮點水珠高光
+        // 邊緣果凍水感折射弧光 (Jelly Rim Refraction)
         ctx.begin_path();
-        ctx.ellipse(
-            self.pos.x - r * 0.42,
-            self.pos.y - r * 0.42,
-            (r * 0.15).max(3.0),
-            (r * 0.10).max(2.0),
-            -0.38,
-            0.0,
-            TWO_PI,
-        )?;
-        ctx.set_fill_style_str("#ffffff");
-        ctx.fill();
+        ctx.arc(self.pos.x, self.pos.y, r * 0.90, -2.5, -0.7)?;
+        ctx.set_stroke_style_str("rgba(165, 230, 255, 0.50)");
+        ctx.set_line_width(2.0);
+        ctx.stroke();
 
-        // 邊緣強烈水光弧痕
+        // 底部微弱次表面散射環境反光 (Subsurface Scattering Bounce)
         ctx.begin_path();
-        ctx.arc(self.pos.x, self.pos.y, r * 0.88, std::f64::consts::PI * 0.82, std::f64::consts::PI * 1.35)?;
-        ctx.set_stroke_style_str("rgba(220, 245, 255, 0.65)");
-        ctx.set_line_width(2.8);
+        ctx.arc(self.pos.x, self.pos.y, r * 0.84, 0.8, 2.3)?;
+        ctx.set_stroke_style_str("rgba(56, 189, 248, 0.20)");
+        ctx.set_line_width(1.6);
         ctx.stroke();
 
         ctx.restore();

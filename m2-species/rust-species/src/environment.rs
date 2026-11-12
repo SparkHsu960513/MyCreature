@@ -53,6 +53,16 @@ pub struct SnowCrystal {
     pub rot_speed: f64,
     pub speed: f64,
     pub size: f64,
+    pub target_y: f64,
+}
+
+#[derive(Clone, Debug)]
+pub struct LandedSnow {
+    pub pos: Vec2,
+    pub size: f64,
+    pub angle: f64,
+    pub life: f64,
+    pub max_life: f64,
 }
 
 #[derive(Clone, Debug)]
@@ -87,6 +97,7 @@ pub struct Environment {
     pub ripples: Vec<Ripple>,
     pub cloud_shadows: Vec<CloudShadow>,
     pub snow_crystals: Vec<SnowCrystal>,
+    pub landed_snow: Vec<LandedSnow>,
     pub dust_particles: Vec<DustParticle>,
     pub electric_surges: Vec<ElectricSurge>,
     pub electric_freq: usize,
@@ -121,13 +132,15 @@ impl Environment {
 
         // 3. 極凍死電期冰晶雪花
         let mut snow_crystals = Vec::new();
-        for _ in 0..65 {
+        for _ in 0..70 {
+            let land_y = rng.gen_range(height * 0.05, height * 0.98);
             snow_crystals.push(SnowCrystal {
-                pos: Vec2::new(rng.gen_range(0.0, width), rng.gen_range(0.0, height)),
+                pos: Vec2::new(rng.gen_range(0.0, width), rng.gen_range(-180.0, land_y)),
                 angle: rng.gen_range(0.0, TWO_PI),
-                rot_speed: rng.gen_range(-0.04, 0.04),
-                speed: rng.gen_range(2.0, 4.5),
-                size: rng.gen_range(4.0, 9.0),
+                rot_speed: rng.gen_range(-0.03, 0.03),
+                speed: rng.gen_range(1.6, 3.4),
+                size: rng.gen_range(3.5, 7.5),
+                target_y: land_y,
             });
         }
 
@@ -140,6 +153,7 @@ impl Environment {
             ripples: Vec::new(),
             cloud_shadows,
             snow_crystals,
+            landed_snow: Vec::new(),
             dust_particles,
             electric_surges: Vec::new(),
             electric_freq: 1,
@@ -321,19 +335,43 @@ impl Environment {
                 });
             }
             WeatherMode::Freezing => {
+                let mut landed_hits = Vec::new();
                 for snow in &mut self.snow_crystals {
                     snow.pos.y += snow.speed;
-                    snow.pos.x -= snow.speed * 0.15;
+                    snow.pos.x -= snow.speed * 0.12;
                     snow.angle += snow.rot_speed;
 
-                    if snow.pos.y > self.height + 25.0 {
-                        snow.pos.y = -25.0;
-                        snow.pos.x = rng.gen_range(-20.0, self.width + 100.0);
-                    }
-                    if snow.pos.x < -30.0 {
-                        snow.pos.x = self.width + 30.0;
+                    // 當雪花飄落到達地面高度 target_y 時觸發落地積雪！
+                    if snow.pos.y >= snow.target_y {
+                        landed_hits.push((Vec2::new(snow.pos.x, snow.target_y), snow.size, snow.angle));
+
+                        // 重設雪花至高空重新降落
+                        let land_y = rng.gen_range(self.height * 0.05, self.height * 0.98);
+                        snow.pos.x = rng.gen_range(-20.0, self.width + 50.0);
+                        snow.pos.y = rng.gen_range(-160.0, -20.0);
+                        snow.target_y = land_y;
+                        snow.speed = rng.gen_range(1.6, 3.4);
                     }
                 }
+
+                // 產生落地積雪冰晶（落地後停留積雪並緩慢融化）
+                for (pos, size, angle) in landed_hits {
+                    if self.landed_snow.len() < 120 {
+                        self.landed_snow.push(LandedSnow {
+                            pos,
+                            size: size * 0.85,
+                            angle,
+                            life: rng.gen_range(180.0, 300.0), // 停留約 3~5 秒
+                            max_life: 240.0,
+                        });
+                    }
+                }
+
+                // 更新落地積雪壽命（慢慢融化）
+                for ls in &mut self.landed_snow {
+                    ls.life -= 1.0;
+                }
+                self.landed_snow.retain(|ls| ls.life > 0.0);
             }
             WeatherMode::Normal => {
                 for d in &mut self.dust_particles {
@@ -495,81 +533,105 @@ impl Environment {
 
         match self.weather {
             WeatherMode::AmberRain => {
-                // 1. 全螢幕地面散佈的生化螢光衝擊漣漪 (Fluorescent Neon Ripples)
+                // 1. 全螢幕地面散佈的微黏稠螢光橘雨衝擊漣漪（無白點、透明感高於 65%）
                 for r in &self.ripples {
                     let alpha = r.alpha.clamp(0.0, 1.0);
 
-                    // 垂直俯視視角：近乎正圓的同心衝擊擴散環
-                    // 外層鮮豔螢光橘光暈環
+                    // 外層柔和半透明琥珀環
                     ctx.begin_path();
                     ctx.ellipse(r.pos.x, r.pos.y, r.radius, r.radius * 0.88, 0.0, 0.0, TWO_PI)?;
-                    ctx.set_stroke_style_str(&format!("rgba(255, 110, 0, {})", alpha * 0.95));
-                    ctx.set_line_width(3.2);
+                    ctx.set_stroke_style_str(&format!("rgba(245, 140, 20, {:.3})", alpha * 0.26));
+                    ctx.set_line_width(1.6);
                     ctx.stroke();
 
-                    // 內層熾熱螢光金亮環
+                    // 內層細微金橘色流光環
                     ctx.begin_path();
                     ctx.ellipse(r.pos.x, r.pos.y, r.radius * 0.55, r.radius * 0.48, 0.0, 0.0, TWO_PI)?;
-                    ctx.set_stroke_style_str(&format!("rgba(255, 230, 90, {})", alpha));
-                    ctx.set_line_width(1.8);
+                    ctx.set_stroke_style_str(&format!("rgba(251, 191, 36, {:.3})", alpha * 0.18));
+                    ctx.set_line_width(0.9);
                     ctx.stroke();
-
-                    // 著地點中心螢光落水光斑
-                    ctx.begin_path();
-                    ctx.arc(r.pos.x, r.pos.y, (3.5 * alpha).max(1.0), 0.0, TWO_PI)?;
-                    ctx.set_fill_style_str(&format!("rgba(255, 255, 200, {})", alpha));
-                    ctx.fill();
                 }
 
-                // 2. 螢光向上炸開水花粒子 (Fluorescent Splashes)
+                // 2. 向上散射的微小半透明水花粒子
                 for s in &self.splashes {
                     let p = (s.life / s.max_life).clamp(0.0, 1.0);
                     ctx.begin_path();
-                    ctx.arc(s.pos.x, s.pos.y, s.size * p, 0.0, TWO_PI)?;
-                    ctx.set_fill_style_str(&format!("rgba(255, 200, 30, {})", p));
+                    ctx.arc(s.pos.x, s.pos.y, s.size * p * 0.7, 0.0, TWO_PI)?;
+                    ctx.set_fill_style_str(&format!("rgba(245, 158, 11, {:.3})", p * 0.28));
                     ctx.fill();
                 }
 
-                // 3. 空中疾馳墜下的高飽和生化螢光橘雨滴 (Fluorescent Glowing Rain Streaks)
+                // 3. 空中疾馳墜下的半透明琥珀酸雨條痕（無白色尖端、透明度 > 65%）
                 for drop in &self.rain_drops {
                     let head_x = drop.x - drop.length * 0.12;
                     let head_y = drop.y;
                     let tail_x = drop.x;
                     let tail_y = drop.y - drop.length;
 
-                    // 外層強烈螢光暈光（已調低，避免過於搶眼）
-                    ctx.set_stroke_style_str("rgba(255, 80, 0, 0.38)");
-                    ctx.set_line_width(4.5);
+                    // 外層柔和薄霧雨暈
+                    ctx.set_stroke_style_str("rgba(245, 130, 15, 0.12)");
+                    ctx.set_line_width(2.6);
                     ctx.begin_path();
                     ctx.move_to(tail_x, tail_y);
                     ctx.line_to(head_x, head_y);
                     ctx.stroke();
 
-                    // 內層飽和亮橘流光（已調低）
-                    ctx.set_stroke_style_str("rgba(255, 170, 0, 0.6)");
-                    ctx.set_line_width(2.4);
+                    // 內層微細雨絲（半透明 68%）
+                    ctx.set_stroke_style_str("rgba(251, 191, 36, 0.30)");
+                    ctx.set_line_width(1.1);
                     ctx.begin_path();
                     ctx.move_to(tail_x, tail_y);
                     ctx.line_to(head_x, head_y);
                     ctx.stroke();
-
-                    // 雨滴撞擊端高亮螢光光核 (White-Hot Fluorescent Tip)
-                    ctx.begin_path();
-                    ctx.arc(head_x, head_y, 1.8, 0.0, TWO_PI)?;
-                    ctx.set_fill_style_str("#fffae0");
-                    ctx.fill();
                 }
             }
             WeatherMode::Freezing => {
-                // 夜間極凍死電期：冷螢光青藍六角星雪花
+                // 1. 落地積雪冰晶與緩慢融化消散 (Accumulating & Melting Snow Ground Patches)
+                for ls in &self.landed_snow {
+                    let progress = (ls.life / ls.max_life).clamp(0.0, 1.0);
+                    // 隨時間平滑融化、縮小並變淡
+                    let melt_alpha = progress.powf(0.85);
+                    let melt_size = ls.size * (0.45 + 0.55 * progress);
+
+                    ctx.save();
+                    ctx.translate(ls.pos.x, ls.pos.y)?;
+                    ctx.rotate(ls.angle)?;
+
+                    // 地面微光融化水痕
+                    ctx.begin_path();
+                    ctx.ellipse(0.0, 0.0, melt_size * 1.3, melt_size * 0.65, 0.0, 0.0, TWO_PI)?;
+                    ctx.set_fill_style_str(&format!("rgba(120, 210, 255, {:.3})", melt_alpha * 0.14));
+                    ctx.fill();
+
+                    // 沉積冰晶六角星本體
+                    ctx.set_stroke_style_str(&format!("rgba(180, 240, 255, {:.3})", melt_alpha * 0.62));
+                    ctx.set_line_width(1.3);
+                    for a_idx in 0..3 {
+                        let rot = (a_idx as f64) * (TWO_PI / 6.0);
+                        let arm = melt_size;
+                        ctx.begin_path();
+                        ctx.move_to(-rot.cos() * arm, -rot.sin() * arm);
+                        ctx.line_to(rot.cos() * arm, rot.sin() * arm);
+                        ctx.stroke();
+                    }
+
+                    // 核心微細雪晶中心
+                    ctx.begin_path();
+                    ctx.arc(0.0, 0.0, melt_size * 0.22, 0.0, TWO_PI)?;
+                    ctx.set_fill_style_str(&format!("rgba(240, 250, 255, {:.3})", melt_alpha * 0.70));
+                    ctx.fill();
+
+                    ctx.restore();
+                }
+
+                // 2. 空中飄落的冰晶雪花
                 for snow in &self.snow_crystals {
                     ctx.save();
                     ctx.translate(snow.pos.x, snow.pos.y)?;
                     ctx.rotate(snow.angle)?;
 
-                    // 外圈冰藍發光
-                    ctx.set_stroke_style_str("rgba(0, 240, 255, 0.95)");
-                    ctx.set_line_width(2.0);
+                    ctx.set_stroke_style_str("rgba(140, 230, 255, 0.75)");
+                    ctx.set_line_width(1.4);
 
                     for a_idx in 0..3 {
                         let rot = (a_idx as f64) * (TWO_PI / 6.0);
@@ -579,8 +641,7 @@ impl Environment {
                         ctx.line_to(rot.cos() * arm, rot.sin() * arm);
                         ctx.stroke();
 
-                        // 小冰晶側枝
-                        let sub_arm = arm * 0.45;
+                        let sub_arm = arm * 0.40;
                         let mid = arm * 0.55;
                         ctx.begin_path();
                         ctx.move_to(rot.cos() * mid, rot.sin() * mid);
@@ -589,8 +650,8 @@ impl Environment {
                     }
 
                     ctx.begin_path();
-                    ctx.arc(0.0, 0.0, 2.2, 0.0, TWO_PI)?;
-                    ctx.set_fill_style_str("#ffffff");
+                    ctx.arc(0.0, 0.0, 1.4, 0.0, TWO_PI)?;
+                    ctx.set_fill_style_str("rgba(220, 245, 255, 0.85)");
                     ctx.fill();
 
                     ctx.restore();

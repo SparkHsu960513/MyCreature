@@ -193,9 +193,6 @@ function __wbg_get_imports() {
         __wbg_set_lineWidth_cc15473552c60c9c: function(arg0, arg1) {
             arg0.lineWidth = arg1;
         },
-        __wbg_set_strokeStyle_a36f39be93a6cebc: function(arg0, arg1) {
-            arg0.strokeStyle = arg1;
-        },
         __wbg_set_strokeStyle_d51608fa918b53d4: function(arg0, arg1, arg2) {
             arg0.strokeStyle = getStringFromWasm0(arg1, arg2);
         },

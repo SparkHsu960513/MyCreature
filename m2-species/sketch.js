@@ -14,6 +14,9 @@ let sim = null;
 let canvas = null;
 let ctx = null;
 
+// 全局畫面縮放比例（廣角宏觀視角：縮小至 60%）
+const VIEW_SCALE = 0.6;
+
 // DOM 元素引用
 let hudPlayerTier, hudPlayerExp, hudExpBarFill, hudCreatureCount, hudWeather;
 let sliderBrightness, sliderViscosity, sliderGearSpeed, sliderLightning, sliderRain, sliderElectric, selectWeather;
@@ -41,8 +44,8 @@ async function bootstrap() {
   ctx = canvas.getContext('2d');
   resizeCanvas();
 
-  // 實例化 Rust 模擬世界
-  sim = new WorldSimulation(canvas.width, canvas.height);
+  // 實例化 Rust 模擬世界（考慮視野縮放，確保全螢幕無黑邊覆蓋）
+  sim = new WorldSimulation(canvas.width / VIEW_SCALE, canvas.height / VIEW_SCALE);
 
   // 綁定 HUD 與控制面板
   initControls();
@@ -54,7 +57,7 @@ async function bootstrap() {
   window.addEventListener('resize', () => {
     resizeCanvas();
     if (sim) {
-      sim.resize(canvas.width, canvas.height);
+      sim.resize(canvas.width / VIEW_SCALE, canvas.height / VIEW_SCALE);
     }
   });
 
@@ -225,37 +228,37 @@ function syncSlidersToSim() {
 }
 
 function bindMouseEvents() {
-  // 左鍵引導母體爬行
+  // 左鍵引導母體爬行（座標映射至虛擬世界座標）
   canvas.addEventListener('mousedown', (e) => {
     if (e.button === 0) {
-      if (sim) sim.stimulate(e.clientX, e.clientY);
+      if (sim) sim.stimulate(e.clientX / VIEW_SCALE, e.clientY / VIEW_SCALE);
     }
   });
 
   canvas.addEventListener('mousemove', (e) => {
     if (e.buttons === 1) {
-      if (sim) sim.stimulate(e.clientX, e.clientY);
+      if (sim) sim.stimulate(e.clientX / VIEW_SCALE, e.clientY / VIEW_SCALE);
     }
   });
 
   // 右鍵投放幼體獵物
   canvas.addEventListener('contextmenu', (e) => {
     e.preventDefault();
-    if (sim) sim.spawn_food(e.clientX, e.clientY);
+    if (sim) sim.spawn_food(e.clientX / VIEW_SCALE, e.clientY / VIEW_SCALE);
   });
 
   // 觸控螢幕支援
   canvas.addEventListener('touchstart', (e) => {
     if (e.touches.length > 0) {
       const touch = e.touches[0];
-      if (sim) sim.stimulate(touch.clientX, touch.clientY);
+      if (sim) sim.stimulate(touch.clientX / VIEW_SCALE, touch.clientY / VIEW_SCALE);
     }
   }, { passive: true });
 
   canvas.addEventListener('touchmove', (e) => {
     if (e.touches.length > 0) {
       const touch = e.touches[0];
-      if (sim) sim.stimulate(touch.clientX, touch.clientY);
+      if (sim) sim.stimulate(touch.clientX / VIEW_SCALE, touch.clientY / VIEW_SCALE);
     }
   }, { passive: true });
 }
@@ -265,8 +268,11 @@ function gameLoop() {
     // 執行 Rust 高速物理與演算法更新
     sim.update();
 
-    // 呼叫 Rust 高速 2D 畫布渲染
+    // 呼叫 Rust 高速 2D 畫布渲染（全局縮放 60% 廣角透視）
+    ctx.save();
+    ctx.scale(VIEW_SCALE, VIEW_SCALE);
     sim.render(ctx);
+    ctx.restore();
 
     // 更新抬頭顯示 HUD
     updateHUD();
